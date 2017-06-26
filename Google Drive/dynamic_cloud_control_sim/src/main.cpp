@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <stdio.h>
 #include <queue>
 #include <vector>
@@ -103,6 +104,13 @@ int main(int argc, char* argv[]) {
 	// Initialize node queues and scheduler
 	testbed.init();
 
+	// Open log file and init
+	ofstream queueFile;
+	string queueFilename = "log/queue_" + string(schedulingPolicy) + "_N_" + to_string(N) + "_t_" + to_string(simTime) 
+							+ "_deltar_" + to_string(deltar);
+	queueFile.open(queueFilename + ".csv");
+	testbed.initReportQueue(queueFile);
+
 	// Simulation loop
 	for (int t = 0; t < simTime; t++) {
 		// Print time slot
@@ -118,10 +126,11 @@ int main(int argc, char* argv[]) {
 		testbed.extArrivals(t);
 
 		// report queue lengths
-		testbed.reportQueue();
+		testbed.reportQueue(queueFile, t);
 
 	}
 
+	queueFile.close();
 
 }
 

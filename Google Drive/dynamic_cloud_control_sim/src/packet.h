@@ -2,6 +2,7 @@
 #define _PACKET_H_
 
 #include <vector>
+#include <string>
 
 class PacketID {
 public:
@@ -32,6 +33,12 @@ public:
 	int getDst() { return dstID; }
 	int getService() { return service; }
 	int getStage() { return stage; }
+	std::string getString() { 
+		std::string s ("(");
+		s += std::to_string(dstID);
+		s += (")");
+		return s;
+	}
 
 private:
 	int dstID;

@@ -161,9 +161,22 @@ void Testbed::extArrivals(int t) {
 		nodes[i]->extArrivals(t);
 	}
 }
-void Testbed::reportQueue() {
+
+void Testbed::initReportQueue(std::ofstream& file) {
+	file << "time";
 	for (int i = 0; i < numNodes; i++) {
-		nodes[i]->reportQueue();
+		for (int p = 0; p < packetIDs.size(); p++) {
+			file << ", node" << i << "_" << packetIDs[p]->getString();
+		}
 	}
+	file << std::endl;;
+}
+
+void Testbed::reportQueue(std::ofstream& file, int t) {
+	file << t;
+	for (int i = 0; i < numNodes; i++) {
+		nodes[i]->reportQueue(file);
+	}
+	file << std::endl;
 }
 

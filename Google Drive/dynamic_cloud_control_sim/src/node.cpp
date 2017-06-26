@@ -100,9 +100,8 @@ void Node::tx(Link* link, PacketID* pid, int rate) {
 			}
 		}
 	}
-
-
 }
+
 int Node::receivePacket(Packet* pkPtr) {
 	if (pkPtr->getDst() == nodeID){
 		delete pkPtr;
@@ -132,13 +131,11 @@ void Node::extArrivals(int t) {
 	}
 }
 
-void Node::reportQueue() {
+void Node::reportQueue(std::ofstream& file) {
 	std::cout << "Node " << nodeID << ": ";
-	//for (int i = 0; i < numNodes; i++) {
-	//	std::cout << queues[i].size() << ", ";
-	//}
 	for (auto it = queues.begin(); it != queues.end(); it++) {
 		std::cout << std::get<1>(*it).size() << ", ";
+		file << ", " << std::get<1>(*it).size();
 	}
 	std::cout << std::endl;
 }

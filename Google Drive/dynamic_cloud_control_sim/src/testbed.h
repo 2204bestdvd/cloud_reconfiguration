@@ -1,6 +1,7 @@
 #if !defined(_TESTBED_H_)
 #define _TESTBED_H_
 
+#include <fstream>
 #include <vector>
 #include <tuple>
 #include "node.h"
@@ -39,7 +40,8 @@ public:
 	void scheduleTx();
 	void tx();
 	void extArrivals(int t);
-	void reportQueue();
+	void initReportQueue(std::ofstream& file);
+	void reportQueue(std::ofstream& file, int t);
 
 
 private:

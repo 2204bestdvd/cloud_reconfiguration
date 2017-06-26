@@ -2,6 +2,7 @@
 #define _NODE_H_
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <queue>
 #include <tuple>
@@ -37,9 +38,10 @@ public:
 	//int getWeight(int q, Link* link);
 	//int getMaxWeightQueue(Link* link);
 	void tx(Link* link, PacketID* pid, int rate);
+	//void px(PacketID* pid, int rate);
 	int receivePacket(Packet* pkPtr);
 	void extArrivals(int t);
-	void reportQueue();
+	void reportQueue(std::ofstream& file);
 	static int getNumNodes() {
 		return numNodes;
 	}
