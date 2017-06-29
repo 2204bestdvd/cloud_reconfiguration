@@ -5,14 +5,14 @@ Node::Node(int deltar) :deltar(deltar) {
 	nodeID = numNodes;
 	numNodes++;
 }
-void Node::initQueues(std::vector<PacketID*> packetIDs) {
+void Node::initQueues() {
 	/*
 	for (int i = 0; i < numNodes; i++) {
 		std::queue<Packet *> q;
 		queues.push_back(q);
 	}
 	*/
-	for (auto it = packetIDs.begin(); it != packetIDs.end(); it++) {
+	for (auto it = PacketID::packetIDs.begin(); it != PacketID::packetIDs.end(); it++) {
 		std::queue<Packet *> q;
 		queues.insert(std::make_tuple(*it, q));		
 	}
@@ -35,61 +35,19 @@ void Node::timeIncrement() {
 	}
 }
 
-/*
-void Node::scheduleTx() {
-	int q = 0;
-	for (int i = 0; i < outputLinks.size(); i++) {
-		q = getMaxWeightQueue(outputLinks[i]);
-		scheduledQueues[i] = q;
+void Node::preparePx(int numRes, PacketID* pid) {
+	if ((numRes != numResource) || (pid != packetID)) {
+		// Start reconfiguration
+		reconfigDelay = deltar;
+		numResource = numRes;
+		packetID = pid;
 	}
 }
 
-int Node::getWeight(int q, Link* link) {
-	int weight;
-	weight = queues[q].size() - link->getReceiver()->queues[q].size();
-	return weight;
-}
-
-int Node::getMaxWeightQueue(Link* link) {
-	int maxWeight = -1;
-	int maxWeightQueue = -1;
-	int tempWeight = 0;
-	for (int i = 0; i < numNodes; i++) {
-		tempWeight = getWeight(i, link);
-		if (tempWeight > maxWeight) {
-			maxWeight = tempWeight;
-			maxWeightQueue = i;
-		}
-	}
-	// Transmit only when the drift is strictly larger than 0
-	if (maxWeight == 0) {
-		maxWeightQueue = -1;
-	}
-	return maxWeightQueue;
-}
-*/
 
 void Node::tx(Link* link, PacketID* pid, int rate) {
-//printQueues();
-	//int queueNumber;
 	Packet* pkPtr;
-	
-	/*
-	for (int i = 0; i < outputLinks.size(); i++) {
-		queueNumber = scheduledQueues[i];
-		
-		// Transmit if there is a scheduled queue and it is nonempty
-		// If tx fails (return != 0), keep packet at queue
-		if ((queueNumber != -1) && !queues[queueNumber].empty()) {
-			pkPtr = queues[queueNumber].front();
-			int e = outputLinks[i]->tx(pkPtr);
-			if (e == 0) {
-				// tx success, remove packet from queue
-				queues[queueNumber].pop();
-			}
-		}
-	}
-	*/
+
 	for (int i = 0; i < rate; i++) {
 		if ((pid != NULL) && !queues[pid].empty()) {
 			pkPtr = queues[pid].front();
@@ -101,9 +59,44 @@ void Node::tx(Link* link, PacketID* pid, int rate) {
 		}
 	}
 }
+void Node::px(PacketID* pid, int rate) {
+	Packet *pkPtr, *tempPtr;
+	PacketID* nextPid;
+
+	for (int i = 0; i < rate; i++) {
+		if ((pid != NULL) && !queues[pid].empty()) {
+			pkPtr = queues[pid].front();
+
+			if (reconfigDelay == 0) {
+				*logger << "Node " << nodeID << " process a packet" << std::endl;
+
+				// Process the packet and transfer to the next queue
+				if (!pid->isLastStage()) {
+					pkPtr->process();
+					queues[pid].pop();
+					nextPid = pid->getNextPid();
+					if ((nextPid->isLastStage()) && (nextPid->getDst() == nodeID)) {
+						delete pkPtr;
+					} else {
+						queues[nextPid].push(pkPtr);
+					}
+				}
+
+				// Only implement integer ratio here
+				int expand = pxScaling - 1;
+				while (expand > 0) {
+					// Duplicate packet for flow expansion
+					tempPtr = new Packet(*pkPtr);
+					queues[nextPid].push(pkPtr);
+					expand--;
+				}
+			}
+		}
+	}
+}
 
 int Node::receivePacket(Packet* pkPtr) {
-	if (pkPtr->getDst() == nodeID){
+	if ((pkPtr->getDst() == nodeID) && (pkPtr->isLastStage())){
 		delete pkPtr;
 	} else {
 		PacketID* pid = pkPtr->getPID();
@@ -121,7 +114,7 @@ void Node::extArrivals(int t) {
 		pid = std::get<0>(*it);
 		numPacket = std::get<1>(*it)->rand();
 		if (numPacket > 0) {
-			std::cout << "Time " << t << ": node " << nodeID << " generates " << numPacket 
+			*logger << "Time " << t << ": node " << nodeID << " generates " << numPacket 
 			          << " packets to node " << pid->getDst() << std::endl; 
 		}
 		for (int i = 0; i < numPacket; i++) {
@@ -131,13 +124,20 @@ void Node::extArrivals(int t) {
 	}
 }
 
-void Node::reportQueue(std::ofstream& file) {
-	std::cout << "Node " << nodeID << ": ";
+void Node::initReportQueue() {
+	std::ofstream* file = logger->getQFile();
 	for (auto it = queues.begin(); it != queues.end(); it++) {
-		std::cout << std::get<1>(*it).size() << ", ";
-		file << ", " << std::get<1>(*it).size();
+		*file << ", node" << nodeID << "_" << std::get<0>(*it)->getString();
 	}
-	std::cout << std::endl;
+}
+void Node::reportQueue() {
+	std::ofstream* file = logger->getQFile();
+	*logger << "Node " << nodeID << ": ";
+	for (auto it = queues.begin(); it != queues.end(); it++) {
+		*logger << std::get<1>(*it).size() << ", ";
+		*file << ", " << std::get<1>(*it).size();
+	}
+	*logger << std::endl;
 }
 
 int Node::getNodeID() {
@@ -146,4 +146,10 @@ int Node::getNodeID() {
 
 int Node::getQueueLen(PacketID* pid) {
 	return queues[pid].size();
+}
+
+int Node::getQueueDiff(PacketID* pid) {
+	if (pid->isLastStage()) return 0;
+
+	return (queues[pid].size() - pxScaling * queues[pid->getNextPid()].size());
 }

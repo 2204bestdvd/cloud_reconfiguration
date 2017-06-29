@@ -39,10 +39,12 @@ int Link::tx(Packet* pkPtr) {
 	// return status of tx: 0 - tx success, 1 - tx fail due to reconfiguration delay
 	assert(reconfigDelay >= 0);
 	if (reconfigDelay > 0) {
-std::cout << "Link (" << sender->getNodeID() << ", " << receiver->getNodeID() << ") deltar = " << reconfigDelay << std::endl;
+		*logger << "Link (" << sender->getNodeID() << ", " << receiver->getNodeID() << ") deltar = " 
+				<< reconfigDelay << std::endl;
 		return 1;
 	} else {
-std::cout << "Link (" << sender->getNodeID() << ", " << receiver->getNodeID() << ") transmit a packet" << std::endl;
+		*logger << "Link (" << sender->getNodeID() << ", " << receiver->getNodeID() << ") transmit a packet" 
+				<< std::endl;
 		receiver->receivePacket(pkPtr);
 		return 0;
 	}

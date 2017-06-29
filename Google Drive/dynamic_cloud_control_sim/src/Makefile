@@ -1,5 +1,5 @@
 main: main.o packet.o node.o link.o scheduler.o testbed.o
-	clang++ -std=c++11 main.o packet.o node.o link.o scheduler.o testbed.o -o test  
+	clang++ -std=c++11 main.o packet.o node.o link.o scheduler.o testbed.o -o ../test  
 main.o: main.cpp             
 	clang++ -std=c++11 main.cpp -c
 packet.o: packet.cpp             

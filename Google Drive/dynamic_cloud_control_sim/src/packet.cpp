@@ -1,5 +1,8 @@
 #include "packet.h"
 
+std::unordered_map<int, int> PacketID::numServiceStage;
+std::vector<PacketID*> PacketID::packetIDs;
+
 Packet::Packet() {
 	arrTime = 0;
 	serveTime = -1;
@@ -29,6 +32,11 @@ void Packet::setServeTime(int n) {
 	serveTime = n;
 }
 
+void Packet::process() {
+	assert( !(identifier->isLastStage()) );
+	identifier = identifier->getNextPid();
+}
+
 int Packet::getArrTime() {
 	return arrTime;
 }
@@ -47,5 +55,9 @@ int Packet::getDst() {
 
 PacketID* Packet::getPID() {
 	return identifier;
+}
+
+bool Packet::isLastStage() {
+	return identifier->isLastStage();
 }
 

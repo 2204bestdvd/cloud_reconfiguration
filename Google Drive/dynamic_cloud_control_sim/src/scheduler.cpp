@@ -2,10 +2,9 @@
 
 Scheduler::Scheduler() {} 
 
-void Scheduler::init(std::vector<Node *> n, std::vector<Link *> l, std::vector<PacketID *> p, const char* s) {
+void Scheduler::init(std::vector<Node *> n, std::vector<Link *> l,const char* s) {
 	nodes = n;
 	links = l;
-	packetIDs = p;
 	for (int i = 0; i < nodes.size(); i++) {
 		nodeResources.push_back(0);
 		nodeRates.push_back(0);
@@ -37,21 +36,12 @@ void Scheduler::setParam(double setV) {
 	V = setV;
 }
 
-void Scheduler::scheduleTx() {
-std::cout << schedulingPolicy << std::endl;
+void Scheduler::schedule() {
 	if (!strcmp(schedulingPolicy, "DCNC")) {
 		DCNC();
 	} else if (!strcmp(schedulingPolicy, "ADCNC")) {
 		ADCNC();
 	}
-
-	/*
-	// print scheduled link rates
-	for (int l = 0; l < links.size(); l++) {
-		std::cout << linkRates[l] << ", ";
-	}
-	std::cout << std::endl;
-	*/
 }
 
 void Scheduler::DCNC() {
@@ -63,14 +53,13 @@ void Scheduler::DCNC() {
 		// Find the packetID with the highest queue length differential
 		maxPid = NULL;
 		maxDiff = 0;
-		for (int p = 0; p < packetIDs.size(); p++) {
-			diff = links[l]->getQueueDiff(packetIDs[p]);
+		for (int p = 0; p < PacketID::packetIDs.size(); p++) {
+			diff = links[l]->getQueueDiff(PacketID::packetIDs[p]);
 			if (diff > maxDiff) {
 				maxDiff = diff;
-				maxPid = packetIDs[p];
+				maxPid = PacketID::packetIDs[p];
 			}
 		}
-
 		// Determine the optimal resource allocation (subject to allocation cost) and thus MaxWeight
 		resource = 0;
 		rate = 0;
@@ -85,7 +74,6 @@ void Scheduler::DCNC() {
 				}
 			}
 		}
-
 		// Assign the schedule
 		linkTxPackets[l] = maxPid;
 		if (maxPid != NULL) {
@@ -95,7 +83,44 @@ void Scheduler::DCNC() {
 			linkResources[l] = 0;
 			linkRates[l] = 0;
 		}
-	}		
+	}
+	for (int n = 0; n < nodes.size(); n++) {
+		// Find the packetID with the highest queue length differential
+		maxPid = NULL;
+		maxDiff = 0;
+		for (int p = 0; p < PacketID::packetIDs.size(); p++) {
+			diff = nodes[n]->getQueueDiff(PacketID::packetIDs[p]);
+			if (diff > maxDiff) {
+				maxDiff = diff;
+				maxPid = PacketID::packetIDs[p];
+			}
+		}
+
+		// Determine the optimal resource allocation (subject to allocation cost) and thus MaxWeight
+		resource = 0;
+		rate = 0;
+		maxWeight = 0;
+		if (maxDiff > V * nodePxCosts[n]) {
+			for (int r = 0; r < nodeAllocCaps[n].size(); r++) {
+				weight = (maxDiff - V * nodePxCosts[n]) * nodeAllocCaps[n][r] - V * nodeAllocCosts[n][r];
+				if (weight > maxWeight) {
+					maxWeight = weight;
+					rate = nodeAllocCaps[n][r];
+					resource = r;
+				}
+			}
+		}
+
+		// Assign the schedule
+		nodePxPackets[n] = maxPid;
+		if (maxPid != NULL) {
+			nodeResources[n] = resource;
+			nodeRates[n] = rate;
+		} else {
+			nodeResources[n] = 0;
+			nodeRates[n] = 0;
+		}
+	}
 }
 
 void Scheduler::ADCNC () {
@@ -108,11 +133,11 @@ void Scheduler::ADCNC () {
 		// Find the packetID with the highest queue length differential
 		maxPid = NULL;
 		maxDiff = 0;
-		for (int p = 0; p < packetIDs.size(); p++) {
-			diff = links[l]->getQueueDiff(packetIDs[p]);
+		for (int p = 0; p < PacketID::packetIDs.size(); p++) {
+			diff = links[l]->getQueueDiff(PacketID::packetIDs[p]);
 			if (diff > maxDiff) {
 				maxDiff = diff;
-				maxPid = packetIDs[p];
+				maxPid = PacketID::packetIDs[p];
 			}
 		}
 
@@ -153,6 +178,56 @@ void Scheduler::ADCNC () {
 			}
 		} 
 	}		
+
+	for (int n = 0; n < nodes.size(); n++) {
+		// Find the packetID with the highest queue length differential
+		maxPid = NULL;
+		maxDiff = 0;
+		for (int p = 0; p < PacketID::packetIDs.size(); p++) {
+			diff = nodes[n]->getQueueDiff(PacketID::packetIDs[p]);
+			if (diff > maxDiff) {
+				maxDiff = diff;
+				maxPid = PacketID::packetIDs[p];
+			}
+		}
+
+		// Determine the optimal resource allocation (subject to allocation cost) and thus MaxWeight
+		resource = 0;
+		rate = 0;
+		maxWeight = 0;
+		if (maxDiff > V * nodePxCosts[n]) {
+			for (int r = 0; r < nodeAllocCaps[n].size(); r++) {
+				weight = (maxDiff - V * nodePxCosts[n]) * nodeAllocCaps[n][r] - V * nodeAllocCosts[n][r];
+				if (weight > maxWeight) {
+					maxWeight = weight;
+					rate = nodeAllocCaps[n][r];
+					resource = r;
+				}
+			}
+		}
+
+		// Determine the current weight and determine whether to reconfigure
+		currentDiff = 0;
+		currentWeight = 0;
+		if (nodePxPackets[n] != NULL) {
+			currentDiff = nodes[n]->getQueueDiff(nodePxPackets[n]);
+		}
+		if (currentDiff > V * nodePxCosts[n]) {
+			currentWeight = (currentDiff - V * nodePxCosts[n]) * nodeRates[n] - V * nodeAllocCosts[n][nodeResources[n]];
+		}
+		// Reconfigure only when the weight difference is larger than the threshold
+		if (maxWeight - currentWeight > hysteresis(maxWeight)) {
+			nodePxPackets[n] = maxPid;
+			if (maxPid != NULL) {
+				nodeResources[n] = resource;
+				nodeRates[n] = rate;
+			} else {
+				nodeResources[n] = 0;
+				nodeRates[n] = 0;
+			}
+		} 
+	}
+
 }
 
 double Scheduler::hysteresis (double x, double delta, double gamma) {

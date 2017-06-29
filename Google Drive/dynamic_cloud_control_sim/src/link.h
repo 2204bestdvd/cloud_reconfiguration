@@ -9,6 +9,7 @@
 #include <assert.h>
 #include "packet.h"
 #include "node.h"
+#include "logger.h"
 
 class Node;
 
@@ -18,6 +19,7 @@ public:
 	Link(int deltar = 0);
 	void setSender(Node* s);
 	void setReceiver(Node* r);
+	void setLogger(Logger* l) {logger = l;}
 	void timeIncrement();
 
 	int getQueueDiff(PacketID* pid);
@@ -30,10 +32,15 @@ private:
 	int linkID;
 	Node* sender;
 	Node* receiver;
+	Logger* logger;
+
+	// records configuration
 	int numResource;
 	int resourceCost;
 	int capacity;
 	PacketID* packetID;
+
+	// parameters and reconfiguration variables
 	int deltar = 0;
 	int reconfigDelay = 0;
 };

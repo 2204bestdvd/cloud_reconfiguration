@@ -9,11 +9,11 @@
 #include <ctime>
 #include "packet.h"
 #include "testbed.h"
+#include "logger.h"
 
 using namespace std;
 
-
-vector<tuple<int, int>> readTopo (const char* filename) {
+vector<tuple<int, int>> readTopo (string filename) {
 	// Read topology from file
 	vector<tuple<int, int>> links;
 	ifstream topoFile;
@@ -37,7 +37,7 @@ vector<tuple<int, int>> readTopo (const char* filename) {
 	return links;
 }
 
-vector<tuple<int, int, double>> readFlow (const char* filename) {
+vector<tuple<int, int, double>> readFlow (string filename) {
 	// Read flow allocation from file
 	vector<tuple<int, int, double>> flows;
 	ifstream flowFile;
@@ -93,44 +93,55 @@ int main(int argc, char* argv[]) {
 
 	Testbed testbed(N, deltar, schedulingPolicy);
 
+	string inputDir = "input/";
 	// Build topology
-	vector<tuple<int, int>> links = readTopo("topo.in");
+	vector<tuple<int, int>> links = readTopo(inputDir + string("topo.in"));
 	testbed.buildTopo(links, 0);
 
+	// Read service chain definition
+	testbed.readService(inputDir + string("service.in"));
 	// Read flow allocation and assign arrival generators for each flow
-	vector<tuple<int, int, double>> flows = readFlow("flow.in");
-	testbed.addFlow(flows);
+	testbed.readFlow(inputDir + string("flow.in"));
 
 	// Initialize node queues and scheduler
 	testbed.init();
 
-	// Open log file and init
-	ofstream queueFile;
-	string queueFilename = "log/queue_" + string(schedulingPolicy) + "_N_" + to_string(N) + "_t_" + to_string(simTime) 
-							+ "_deltar_" + to_string(deltar);
-	queueFile.open(queueFilename + ".csv");
-	testbed.initReportQueue(queueFile);
+	// Open result file and init
+	string logFilename = "output/log/log.txt";
+	string queueFilename = "output/sim/queue_" + string(schedulingPolicy) + "_N_" + to_string(N) + "_t_" + to_string(simTime) 
+							+ "_deltar_" + to_string(deltar) + ".csv";
+
+	Logger logger(logFilename, queueFilename, false, true);
+	testbed.setLogger(&logger);
+	logger << "Scheduling policy = " << schedulingPolicy << endl;
+
+	//ofstream queueFile;
+	//queueFile.open(queueFilename);
+	auto queueFile = logger.getQFile();
+	testbed.initReportQueue();
+
 
 	// Simulation loop
 	for (int t = 0; t < simTime; t++) {
 		// Print time slot
-		cout << "Time " << t << endl;
+		logger << "Time " << t << endl;
+		cout << "Time " << t << "\r";
 
 		testbed.timeIncrement();
 		// schedule
-		testbed.scheduleTx();
-		// transmission
-		testbed.tx();
+		testbed.schedule();
+		// transmission and processing
+		testbed.run();
 
 		// external arrivals
 		testbed.extArrivals(t);
 
 		// report queue lengths
-		testbed.reportQueue(queueFile, t);
+		testbed.reportQueue(t);
 
 	}
 
-	queueFile.close();
+	//queueFile.close();
 
 }
 

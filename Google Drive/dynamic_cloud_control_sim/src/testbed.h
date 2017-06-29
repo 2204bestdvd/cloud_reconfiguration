@@ -4,44 +4,33 @@
 #include <fstream>
 #include <vector>
 #include <tuple>
+#include <string>
 #include "node.h"
 #include "link.h"
 #include "scheduler.h"
+#include "logger.h"
 
 using namespace std;
-
-class Logger {
-public:
-	Logger() {}
-	void log() {
-		logNodes();
-		logLinks();
-	}
-	void logNodes() {}
-	void logLinks() {}
-
-private:
-	std::vector<Node*> nodes;
-	std::vector<Link*> links;
-	std::vector<PacketID*> packetIDs;	
-};
 
 class Testbed {
 public:
 	Testbed(int num, int deltar = 0, const char* s="DCNC");
 	void createNodes();
 	void buildTopo(vector<tuple<int, int>> links, int linkType);
-	void addFlow(vector<tuple<int, int, double>> flows);
+	void readService (string filename);
+	void readFlow (string filename);
+	void addFlow(int src, int dst, int service, double rate);
 	void init();
 	void setParam();
+	void setLogger(Logger* l);
 	void assignCost();
 	void assignCap();
 	void timeIncrement();
-	void scheduleTx();
-	void tx();
+	void schedule();
+	void run();
 	void extArrivals(int t);
-	void initReportQueue(std::ofstream& file);
-	void reportQueue(std::ofstream& file, int t);
+	void initReportQueue();
+	void reportQueue(int t);
 
 
 private:
@@ -51,6 +40,7 @@ private:
 	std::vector<Link*> links;
 	std::vector<PacketID*> packetIDs;
 	Scheduler scheduler;
+	Logger* logger;
 
 	char* schedulingPolicy;
 	std::vector<double> nodePxCosts;  // process unit cost (for each node)

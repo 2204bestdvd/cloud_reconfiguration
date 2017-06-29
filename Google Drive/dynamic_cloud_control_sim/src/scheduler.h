@@ -1,7 +1,6 @@
 #if !defined(_SCHEDULER_H_)
 #define _SCHEDULER_H_
 
-#include <iostream>
 #include <vector>
 #include <queue>
 #include <tuple>
@@ -13,12 +12,12 @@
 class Scheduler {
 public:
 	Scheduler();
-	void init(std::vector<Node *> n, std::vector<Link *> l, std::vector<PacketID *> p, const char* s);
+	void init(std::vector<Node *> n, std::vector<Link *> l, const char* s);
 	void assignCost(std::vector<double> nPC, std::vector<std::vector<double>> nAC, 
 					std::vector<double> lTC, std::vector<std::vector<double>> lAC);
 	void assignCap(std::vector<std::vector<double>> nAC, std::vector<std::vector<double>> lAC);
 	void setParam(double setV = 1);
-	void scheduleTx();
+	void schedule();
 
 	void DCNC();
 	void ADCNC();
@@ -31,13 +30,17 @@ private:
 	char* schedulingPolicy;
 	std::vector<Node*> nodes;
 	std::vector<Link*> links;
+	std::vector<PacketID*> packetIDs;
+
+	// Parameters
 	std::vector<double> nodePxCosts;  // process unit cost (for each node)
 	std::vector<double> linkTxCosts;  // tx unit cost (for each link) 
 	std::vector<std::vector<double>> nodeAllocCosts;  // cost for allocating k process units (for each node)
 	std::vector<std::vector<double>> linkAllocCosts;  // cost for allocating k tx units (for each link)
 	std::vector<std::vector<double>> nodeAllocCaps;  // capacity from allocating k process units (for each node)
 	std::vector<std::vector<double>> linkAllocCaps;  // capacity from allocating k tx units (for each link)
-	std::vector<PacketID*> packetIDs;
+
+	// Scheduling decisions
 	std::vector<int> nodeResources;
 	std::vector<int> nodeRates;
 	std::vector<PacketID*> nodePxPackets;

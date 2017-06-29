@@ -10,6 +10,7 @@
 #include <random>
 #include "packet.h"
 #include "link.h"
+#include "logger.h"
 
 
 class Poisson {
@@ -29,44 +30,56 @@ class Node {
 public:
 	static int numNodes;
 	Node(int deltar = 0);
-	void initQueues(std::vector<PacketID*> packetIDs);	
+	void initQueues();	
 	//void addNeighbor(Node* neighbor);
 	void addOutputLink(Link* linkPtr);
 	void addFlow(PacketID* pid, double rate);
+	void setLogger(Logger* l) {logger = l;}
 	void timeIncrement();
 	//void scheduleTx();
 	//int getWeight(int q, Link* link);
 	//int getMaxWeightQueue(Link* link);
+	void preparePx(int numRes, PacketID* pid);
 	void tx(Link* link, PacketID* pid, int rate);
-	//void px(PacketID* pid, int rate);
+	void px(PacketID* pid, int rate);
 	int receivePacket(Packet* pkPtr);
 	void extArrivals(int t);
-	void reportQueue(std::ofstream& file);
+	void initReportQueue();
+	void reportQueue();
 	static int getNumNodes() {
 		return numNodes;
 	}
 	int getNodeID();
 	int getQueueLen(PacketID* pid);
-	void printQueues() {
-		std::cout << "Node " << nodeID << ": # queues = " << queues.size() << std::endl;
+	int getQueueDiff(PacketID* pid);
+	void printQueues(Logger& logger) {
+		logger << "Node " << nodeID << ": # queues = " << queues.size() << std::endl;
 
-		std::cout << "Node " << nodeID << ": queues = ";
+		logger << "Node " << nodeID << ": queues = ";
 		for (auto it = queues.begin(); it != queues.end(); it++) {
 			auto temp = std::get<0>(*it);
-			if (temp != NULL) std::cout << temp << ", "; 
+			if (temp != NULL) logger << temp << ", "; 
 		}
-		std::cout << std::endl;
+		logger << std::endl;
 	}
 private:
 	int nodeID;
 	std::unordered_map<PacketID*, std::queue<Packet*>> queues;
-	//std::vector<std::queue<Packet*>> queues;
 	std::vector<Link*> outputLinks;
 	std::vector<int> scheduledQueues;
 	std::vector<std::tuple<PacketID*, Poisson*>> arrivalGenerators;
+	Logger* logger;
+
+	// records configuration
+	int numResource;
+	int resourceCost;
+	int capacity;
+	PacketID* packetID;	
+
+	// parameters and reconfiguration variable
 	int deltar = 0;
 	int reconfigDelay = 0;
-
+	int pxScaling = 1;
 };
 
 #endif /* !defined(_NODE_H_) */
