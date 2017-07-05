@@ -17,6 +17,7 @@ public:
 					std::vector<double> lTC, std::vector<std::vector<double>> lAC);
 	void assignCap(std::vector<std::vector<double>> nAC, std::vector<std::vector<double>> lAC);
 	void setParam(double setV = 1);
+	void setLogger(Logger* l) {logger = l;}
 	void schedule();
 
 	void DCNC();
@@ -25,12 +26,18 @@ public:
 	std::tuple<int, int, PacketID*> getScheduleTx(int l);
 	std::tuple<int, int, PacketID*> getSchedulePx(int n);
 
+	void initReportSchedule();
+	void initReportCost();
+	void reportSchedule(int time);
+	void reportCost(int time);
+
 private:
 	double V;
 	char* schedulingPolicy;
 	std::vector<Node*> nodes;
 	std::vector<Link*> links;
 	std::vector<PacketID*> packetIDs;
+	Logger* logger;
 
 	// Parameters
 	std::vector<double> nodePxCosts;  // process unit cost (for each node)

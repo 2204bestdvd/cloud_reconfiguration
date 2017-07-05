@@ -60,9 +60,9 @@ public:
 	std::string getString() { 
 		std::string s ("(");
 		s += std::to_string(dstID);
-		s += (",");
+		s += ("_");
 		s += std::to_string(service);
-		s += (",");
+		s += ("_");
 		s += std::to_string(stage);
 		s += (")");
 		return s;

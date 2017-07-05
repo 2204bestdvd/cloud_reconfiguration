@@ -1,6 +1,7 @@
 #include "node.h"
 #include "link.h"
 
+
 Node::Node(int deltar) :deltar(deltar) {
 	nodeID = numNodes;
 	numNodes++;

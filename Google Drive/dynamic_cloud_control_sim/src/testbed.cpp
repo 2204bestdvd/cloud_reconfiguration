@@ -17,30 +17,44 @@ void Testbed::createNodes() {
 		nodes.push_back(tempNodePointer);
 	}
 }
+
+void Testbed::buildLink(int sender, int receiver, double txCost, vector<double> allocCosts, 
+						vector<double> allocCaps, int linkType) {
+	// linkType 0:bidirectional, 1:unidirectional
+	Link* tempLinkPointer = new Link(deltar);
+	tempLinkPointer->setSender(nodes[sender]);
+	tempLinkPointer->setReceiver(nodes[receiver]);
+	links.push_back(tempLinkPointer);
+	nodes[sender]->addOutputLink(tempLinkPointer);
+
+	linkTxCosts.push_back(txCost);
+	linkAllocCosts.push_back(allocCosts);
+	linkAllocCaps.push_back(allocCaps);
+
+	if (linkType == 0) {
+		// add a reverse link
+		buildLink(receiver, sender, txCost, allocCosts, allocCaps, 1);
+	}
+}
+
+/*
 void Testbed::buildTopo(vector<tuple<int, int>> connections, int linkType=0) {
 	// linkType 0:bidirectional, 1:unidirectional
 	int sender, receiver;
 	for (auto it = connections.begin(); it != connections.end(); it++) {
 		sender = get<0>(*it);
 		receiver = get<1>(*it);
-		//nodes[sender]->addNeighbor(nodes[receiver]);
 
-		Link* tempLinkPointer = new Link(deltar);
-		tempLinkPointer->setSender(nodes[sender]);
-		tempLinkPointer->setReceiver(nodes[receiver]);
-		links.push_back(tempLinkPointer);
-		nodes[sender]->addOutputLink(tempLinkPointer);
-		if (linkType == 0) {
-			//nodes[receiver]->addNeighbor(nodes[sender]);
-			Link* tempLinkPointer = new Link(deltar);
-			tempLinkPointer->setSender(nodes[receiver]);
-			tempLinkPointer->setReceiver(nodes[sender]);			
-			links.push_back(tempLinkPointer);
-			nodes[receiver]->addOutputLink(tempLinkPointer);
-		}
+		double costsArray[] = {0, 1, 3, 6, 10};
+		std::vector<double> allocCosts (costsArray, costsArray + sizeof(costsArray) / sizeof(double) );
 
+		double capsArray[] = {0, 1, 2, 3, 4};
+		std::vector<double> allocCaps (capsArray, capsArray + sizeof(capsArray) / sizeof(double) );
+
+		buildLink(sender, receiver, 1, allocCosts, allocCaps, linkType);
 	}
 }
+*/
 
 void Testbed::readService (string filename) {
 	// Read service chain definition from file
@@ -130,8 +144,10 @@ void Testbed::init(){
 
 void Testbed::setParam() {
 	scheduler.setParam();
-	assignCost();
-	assignCap();
+	//assignCost();
+	//assignCap();
+	scheduler.assignCost(nodePxCosts, nodeAllocCosts, linkTxCosts, linkAllocCosts);
+	scheduler.assignCap(nodeAllocCaps, linkAllocCaps);
 }
 void Testbed::setLogger(Logger* _logger) {
 	for (int n = 0; n < nodes.size(); n++) {
@@ -140,9 +156,92 @@ void Testbed::setLogger(Logger* _logger) {
 	for (int l = 0; l < links.size(); l++) {
 		links[l]->setLogger(_logger);
 	}
+	scheduler.setLogger(_logger);
 	logger = _logger;
 }
 
+vector<double> Testbed::parseAllocation(string s) {
+	size_t pos = 0;
+	string temp;
+	vector<double> allocation;
+	while ((pos = s.find("_")) != string::npos) {
+		temp = s.substr(0, pos);
+		allocation.push_back(std::stod(temp));
+		s.erase(0, pos + 1);
+	}
+
+	temp = s.substr(0, string::npos);
+	allocation.push_back(std::stod(temp));
+
+	return allocation;
+}
+void Testbed::readTopo (string filename) {
+	// Read topology and parameters from file
+	// Node format: nodeID, px cost, alloc costs, alloc caps
+	// Link format: sender, receiver, tx cost, alloc costs, alloc caps
+	vector<tuple<int, int>> links;
+	ifstream topoFile;
+	string temp;
+	int N, node, sender, receiver;
+	double pxCost, txCost;
+	vector<double> allocCosts, allocCaps;
+
+	topoFile.open(filename);
+	if (topoFile.is_open()) {
+		// Read number of nodes
+		getline(topoFile, temp,'\n');
+		N = std::stoi(temp);
+
+		// Read node parameters
+		for (int n = 0; n < N; n++) {
+			getline(topoFile, temp,',');
+			node = std::stoi(temp);
+			assert(node == n);
+
+			// get px cost
+			getline(topoFile, temp,',');
+			pxCost = std::stod(temp);
+			nodePxCosts.push_back(pxCost);
+
+			// parse allocation costs
+			getline(topoFile, temp,',');
+			allocCosts = parseAllocation(temp);
+			nodeAllocCosts.push_back(allocCosts);
+
+			// parse allocation capacity
+			getline(topoFile, temp,'\n');
+			allocCaps = parseAllocation(temp);
+			nodeAllocCaps.push_back(allocCaps);
+		}
+
+		// Read connections
+		while (topoFile.good()) {
+			getline(topoFile, temp,',');
+			sender = std::stoi(temp);
+			getline(topoFile, temp,',');
+			receiver = std::stoi(temp);
+
+			// get tx cost
+			getline(topoFile, temp,',');
+			txCost = std::stod(temp);
+
+			// parse allocation costs
+			getline(topoFile, temp,',');
+			allocCosts = parseAllocation(temp);
+
+			// parse allocation capacity
+			getline(topoFile, temp,'\n');
+			allocCaps = parseAllocation(temp);
+
+			buildLink(sender, receiver, txCost, allocCosts, allocCaps);
+		}
+		topoFile.close();
+	} else {
+		cout << "Error opening file";
+	}	
+}
+
+/*
 void Testbed::assignCost() {
 	double costsArray[] = {0, 1, 3, 6, 10};
 	std::vector<double> allocCosts (costsArray, costsArray + sizeof(costsArray) / sizeof(double) );
@@ -176,6 +275,7 @@ void Testbed::assignCap() {
 
 	scheduler.assignCap(nodeAllocCaps, linkAllocCaps);
 }
+*/
 
 void Testbed::timeIncrement() {
 	for (int n = 0; n < numNodes; n++) {
@@ -187,18 +287,8 @@ void Testbed::timeIncrement() {
 }
 void Testbed::schedule() {
 	scheduler.schedule();
-	/*
-	for (int i = 0; i < numNodes; i++) {
-		nodes[i]->scheduleTx();
-	}
-	*/
 }
 void Testbed::run() {
-	/*
-	for (int i = 0; i < numNodes; i++) {
-		nodes[i]->tx();
-	}
-	*/
 	PacketID* pid;
 	int resource, rate;
 
@@ -235,21 +325,62 @@ void Testbed::extArrivals(int t) {
 		nodes[i]->extArrivals(t);
 	}
 }
-void Testbed::initReportQueue() {
+void Testbed::initReport() {
 	std::ofstream* file = logger->getQFile();
 	*file << "time";
 	for (int i = 0; i < numNodes; i++) {
 		nodes[i]->initReportQueue();
 	}
-	*file << std::endl;;
+	*file << std::endl;
+
+	scheduler.initReportSchedule();
+	scheduler.initReportCost();
 }
 
-void Testbed::reportQueue(int t) {
+void Testbed::report(int t) {
 	std::ofstream* file = logger->getQFile();
 	*file << t;
 	for (int i = 0; i < numNodes; i++) {
 		nodes[i]->reportQueue();
 	}
 	*file << std::endl;
+
+	scheduler.reportSchedule(t);
+	scheduler.reportCost(t);
+}
+
+void Testbed::printCost() {
+	for (int i = 0; i < nodePxCosts.size(); i++) {
+		std::cout << nodePxCosts[i] << ",";
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < linkTxCosts.size(); i++) {
+		std::cout << linkTxCosts[i] << ",";
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < nodeAllocCosts.size(); i++) {
+		for (int j = 0; j < nodeAllocCosts[i].size(); j++) {
+			std::cout << nodeAllocCosts[i][j] << ",";
+		}
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < linkAllocCosts.size(); i++) {
+		for (int j = 0; j < linkAllocCosts[i].size(); j++) {
+			std::cout << linkAllocCosts[i][j] << ",";
+		}
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < nodeAllocCaps.size(); i++) {
+		for (int j = 0; j < nodeAllocCaps[i].size(); j++) {
+			std::cout << nodeAllocCaps[i][j] << ",";
+		}
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < linkAllocCaps.size(); i++) {
+		for (int j = 0; j < linkAllocCaps[i].size(); j++) {
+			std::cout << linkAllocCaps[i][j] << ",";
+		}
+	}
+	std::cout << std::endl;
 }
 

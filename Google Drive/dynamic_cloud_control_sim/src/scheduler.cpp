@@ -244,5 +244,56 @@ std::tuple<int, int, PacketID*> Scheduler::getSchedulePx(int n) {
 	return std::make_tuple(nodeResources[n], nodeRates[n], pid);
 }
 
+void Scheduler::initReportSchedule() {
+	std::ofstream* file = logger->getSFile();
+	*file << "time";
+	for (int n = 0; n < nodes.size(); n++) {
+		*file << ",node" << n << "_packet" << ",node" << n << "_resource" 
+			  << ",node" << n << "_rate";
+	}
+	for (int l = 0; l < links.size(); l++) {
+		*file << ",link" << l << "_packet" << ",link" << l << "_resource" 
+			  << ",link" << l << "_rate";
+	}
+	*file << std::endl;
+}
+void Scheduler::initReportCost() {
+	std::ofstream* file = logger->getCFile();
+	*file << "time";
+	for (int n = 0; n < nodes.size(); n++) {
+		*file << ",node" << n << "_px" << ",node" << n << "_resource" ;
+	}
+	for (int l = 0; l < links.size(); l++) {
+		*file << ",link" << l << "_tx" << ",link" << l << "_resource";
+	}
+	*file << std::endl;
+}
+void Scheduler::reportSchedule(int time) {
+	std::ofstream* file = logger->getSFile();
+	string packetID;
+
+	*file << time;
+	for (int n = 0; n < nodes.size(); n++) {
+		if (nodePxPackets[n]) packetID = nodePxPackets[n]->getString();
+		*file << "," << packetID << "," << nodeResources[n] << "," << nodeRates[n];
+	}
+	for (int l = 0; l < links.size(); l++) {
+		if (linkTxPackets[l]) packetID = linkTxPackets[l]->getString();
+		*file << "," << packetID << "," << linkResources[l] << "," << linkRates[l];
+	}
+	*file << std::endl;
+}
+void Scheduler::reportCost(int time) {
+	std::ofstream* file = logger->getCFile();
+
+	*file << time;
+	for (int n = 0; n < nodes.size(); n++) {
+		*file << "," << nodePxCosts[n] * nodeRates[n] << "," << nodeAllocCosts[n][nodeResources[n]];
+	}
+	for (int l = 0; l < links.size(); l++) {
+		*file << "," << linkTxCosts[l] * linkRates[l] << "," << linkAllocCosts[l][linkResources[l]];
+	}
+	*file << std::endl;
+}
 
 

@@ -15,7 +15,7 @@
 
 class Poisson {
 public:
-	Poisson(double r) :dist(r) { gen.seed(time(0)); }
+	Poisson(double r) :dist(r) { gen.seed(std::rand()); }
 	int rand() { return dist(gen); }
 	double getRate() { return dist.mean(); }
 private:
