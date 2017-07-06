@@ -52,6 +52,7 @@ public:
 	int getNodeID();
 	int getQueueLen(PacketID* pid);
 	int getQueueDiff(PacketID* pid);
+	int getReconfig() { return reconfigDelay; }
 	void printQueues(Logger& logger) {
 		logger << "Node " << nodeID << ": # queues = " << queues.size() << std::endl;
 

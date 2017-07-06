@@ -21,6 +21,13 @@ void Link::timeIncrement() {
 	}		
 }
 
+string Link::getString() {
+	string ret = "(";
+	ret = ret + to_string(sender->getNodeID()) + "_" + to_string(receiver->getNodeID()) + ")";
+	return ret;
+}
+
+
 int Link::getQueueDiff(PacketID* pid) {
 	return sender->getQueueLen(pid) - receiver->getQueueLen(pid);
 }

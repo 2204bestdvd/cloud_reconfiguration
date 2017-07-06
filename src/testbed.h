@@ -21,8 +21,8 @@ public:
 	void readService (string filename);
 	void readFlow (string filename);
 	void addFlow(int src, int dst, int service, double rate);
-	void init();
-	void setParam();
+	void init(double V);
+	void setParam(double V);
 	void setLogger(Logger* l);
 	vector<double> parseAllocation(string s);
 	void readTopo(string filename);

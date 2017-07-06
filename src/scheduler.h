@@ -16,7 +16,7 @@ public:
 	void assignCost(std::vector<double> nPC, std::vector<std::vector<double>> nAC, 
 					std::vector<double> lTC, std::vector<std::vector<double>> lAC);
 	void assignCap(std::vector<std::vector<double>> nAC, std::vector<std::vector<double>> lAC);
-	void setParam(double setV = 1);
+	void setParam(double setV);
 	void setLogger(Logger* l) {logger = l;}
 	void schedule();
 

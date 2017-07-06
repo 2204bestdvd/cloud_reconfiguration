@@ -22,7 +22,9 @@ public:
 	void setLogger(Logger* l) {logger = l;}
 	void timeIncrement();
 
+	string getString();
 	int getQueueDiff(PacketID* pid);
+	int getReconfig() { return reconfigDelay; }
 	void prepareTx(int numRes, PacketID* pid);
 	int tx(Packet* pkPtr);
 	Node* getSender();

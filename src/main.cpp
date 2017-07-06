@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <string>
 #include <stdio.h>
 #include <queue>
@@ -33,12 +35,13 @@ int readNumNodes(string filename) {
 
 int main(int argc, char* argv[]) {
 	srand(time(0));
-	
+
 	// arguments: t=simTime, N=N, deltar=deltar
 	int simTime = 10;
 	int N = 4;
 	int deltar = 0;
 	char schedulingPolicy[20] = "DCNC";
+	double V = 1;
 	if (argc >= 2) {
 		char* s;
 		char* equalsSign;
@@ -55,6 +58,7 @@ int main(int argc, char* argv[]) {
 				else if (!strcmp(s, "N")) N = atoi(result);
 				else if (!strcmp(s, "deltar")) deltar = atoi(result);
 				else if (!strcmp(s, "policy")) strcpy(schedulingPolicy, result);
+				else if (!strcmp(s, "V")) V = atof(result);
 			}
 		}
 	}
@@ -75,11 +79,13 @@ int main(int argc, char* argv[]) {
 	testbed.readFlow(inputDir + string("flow.in"));
 
 	// Initialize node queues and scheduler
-	testbed.init();
+	testbed.init(V);
 
 	// Open result file and init
-	string simIdentifier = string(schedulingPolicy) + "_N_" + to_string(N) + "_t_" + to_string(simTime) 
-							+ "_deltar_" + to_string(deltar);
+	stringstream ss_V;
+	ss_V << fixed << setprecision(1) << V;
+	string simIdentifier = "N_" + to_string(N) + "_t_" + to_string(simTime) + "_deltar_" + to_string(deltar) 
+							+ "_" + string(schedulingPolicy) + "_V_" + ss_V.str();
 	string logFilename = "output/log/log_" + simIdentifier + ".txt";
 	string queueFilename = "output/sim/queue_" + simIdentifier + ".csv";
 	string scheduleFilename = "output/sim/schedule_" + simIdentifier + ".csv";

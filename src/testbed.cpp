@@ -130,7 +130,7 @@ void Testbed::addFlow(int src, int dst, int service, double rate) {
 	}
 }
 
-void Testbed::init(){
+void Testbed::init(double V){
 	// Initialize queues and for each node after creation of all nodes
 	// one queue for each node/destination
 	for (int i = 0; i < numNodes; i++) {
@@ -139,11 +139,11 @@ void Testbed::init(){
 
 	// Initialize scheduler
 	scheduler.init(nodes, links, schedulingPolicy);
-	setParam();
+	setParam(V);
 }
 
-void Testbed::setParam() {
-	scheduler.setParam();
+void Testbed::setParam(double V) {
+	scheduler.setParam(V);
 	//assignCost();
 	//assignCap();
 	scheduler.assignCost(nodePxCosts, nodeAllocCosts, linkTxCosts, linkAllocCosts);

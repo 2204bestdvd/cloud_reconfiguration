@@ -164,10 +164,12 @@ void Scheduler::ADCNC () {
 		}
 		if (currentDiff > V * linkTxCosts[l]) {
 			currentWeight = (currentDiff - V * linkTxCosts[l]) * linkRates[l] - V * linkAllocCosts[l][linkResources[l]];
+		} else {
+			currentWeight = - V * linkAllocCosts[l][linkResources[l]];
 		}
 
-		// Reconfigure only when the weight difference is larger than the threshold
-		if (maxWeight - currentWeight > hysteresis(maxWeight)) {
+		// Reconfigure only when the weight difference is larger than the threshold or the rate is zero
+		if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
 			linkTxPackets[l] = maxPid;
 			if (maxPid != NULL) {
 				linkResources[l] = resource;
@@ -214,9 +216,12 @@ void Scheduler::ADCNC () {
 		}
 		if (currentDiff > V * nodePxCosts[n]) {
 			currentWeight = (currentDiff - V * nodePxCosts[n]) * nodeRates[n] - V * nodeAllocCosts[n][nodeResources[n]];
+		} else {
+			currentWeight = - V * nodeAllocCosts[n][nodeResources[n]];
 		}
-		// Reconfigure only when the weight difference is larger than the threshold
-		if (maxWeight - currentWeight > hysteresis(maxWeight)) {
+		
+		// Reconfigure only when the weight difference is larger than the threshold or the rate is zero
+		if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
 			nodePxPackets[n] = maxPid;
 			if (maxPid != NULL) {
 				nodeResources[n] = resource;
@@ -249,11 +254,11 @@ void Scheduler::initReportSchedule() {
 	*file << "time";
 	for (int n = 0; n < nodes.size(); n++) {
 		*file << ",node" << n << "_packet" << ",node" << n << "_resource" 
-			  << ",node" << n << "_rate";
+			  << ",node" << n << "_rate" << ",node" << n << "_reconfig";
 	}
 	for (int l = 0; l < links.size(); l++) {
-		*file << ",link" << l << "_packet" << ",link" << l << "_resource" 
-			  << ",link" << l << "_rate";
+		*file << ",link" << links[l]->getString() << "_packet" << ",link" << links[l]->getString() << "_resource" 
+			  << ",link" << links[l]->getString() << "_rate" << ",link" << links[l]->getString() << "_reconfig";
 	}
 	*file << std::endl;
 }
@@ -264,7 +269,7 @@ void Scheduler::initReportCost() {
 		*file << ",node" << n << "_px" << ",node" << n << "_resource" ;
 	}
 	for (int l = 0; l < links.size(); l++) {
-		*file << ",link" << l << "_tx" << ",link" << l << "_resource";
+		*file << ",link" << links[l]->getString() << "_tx" << ",link" << links[l]->getString() << "_resource";
 	}
 	*file << std::endl;
 }
@@ -275,11 +280,11 @@ void Scheduler::reportSchedule(int time) {
 	*file << time;
 	for (int n = 0; n < nodes.size(); n++) {
 		if (nodePxPackets[n]) packetID = nodePxPackets[n]->getString();
-		*file << "," << packetID << "," << nodeResources[n] << "," << nodeRates[n];
+		*file << "," << packetID << "," << nodeResources[n] << "," << nodeRates[n] << "," << nodes[n]->getReconfig();
 	}
 	for (int l = 0; l < links.size(); l++) {
 		if (linkTxPackets[l]) packetID = linkTxPackets[l]->getString();
-		*file << "," << packetID << "," << linkResources[l] << "," << linkRates[l];
+		*file << "," << packetID << "," << linkResources[l] << "," << linkRates[l] << "," << links[l]->getReconfig();
 	}
 	*file << std::endl;
 }
