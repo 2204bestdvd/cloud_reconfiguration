@@ -11,16 +11,21 @@ class Logger {
 public:
 	Logger(string logFilename, string queueFilename, string scheduleFilename, string costFilename, 
 			bool disp=true, bool logg=true) :displaying(disp), logging{logg} {
-		logFile.open(logFilename);
+		if (logging) {
+			logFile.open(logFilename);
+		}
 		queueFile.open(queueFilename);
 		scheduleFile.open(scheduleFilename);
 		costFile.open(costFilename);
 		//readConfig(configFilename);
 	}
 	~Logger() {
-        logFile.close();
+		if (logging) {
+	        logFile.close();
+	    }
         queueFile.close();
         scheduleFile.close();
+        costFile.close();
     }
     /*
     void readConfig(string configFilename) {

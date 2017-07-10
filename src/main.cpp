@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
 	int deltar = 0;
 	char schedulingPolicy[20] = "DCNC";
 	double V = 1;
+	bool logging = true;
 	if (argc >= 2) {
 		char* s;
 		char* equalsSign;
@@ -59,6 +60,11 @@ int main(int argc, char* argv[]) {
 				else if (!strcmp(s, "deltar")) deltar = atoi(result);
 				else if (!strcmp(s, "policy")) strcpy(schedulingPolicy, result);
 				else if (!strcmp(s, "V")) V = atof(result);
+				else if (!strcmp(s, "logging")) {
+					if (!strcmp(result, "true")) logging = true;
+					else if (!strcmp(result, "false")) logging = false;
+					else cout << "Error reading logging parameter" << endl;
+				}
 			}
 		}
 	}
@@ -91,7 +97,7 @@ int main(int argc, char* argv[]) {
 	string scheduleFilename = "output/sim/schedule_" + simIdentifier + ".csv";
 	string costFilename = "output/sim/cost_" + simIdentifier + ".csv";
 
-	Logger logger(logFilename, queueFilename, scheduleFilename, costFilename, false, true);
+	Logger logger(logFilename, queueFilename, scheduleFilename, costFilename, false, logging);
 	testbed.setLogger(&logger);
 	logger << "Scheduling policy = " << schedulingPolicy << endl;
 
