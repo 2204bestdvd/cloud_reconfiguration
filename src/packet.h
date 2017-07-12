@@ -34,6 +34,7 @@ public:
 	int getDst() { return dstID; }
 	int getService() { return service; }
 	int getStage() { return stage; }
+	int getPxScaling() { return serviceScaling[service][stage]; }
 	bool isLastStage() { return stage == numServiceStage[service]; }
 	PacketID* findPid(int dst, int service, int stage) {
 		// Return null if no corresponding pid found
@@ -68,6 +69,7 @@ public:
 		return s;
 	}
 	static std::unordered_map<int, int> numServiceStage;
+	static std::unordered_map<int, std::vector<int>> serviceScaling;
 	static std::vector<PacketID*> packetIDs;
 
 private:
@@ -83,7 +85,7 @@ public:
 	Packet(const Packet &p);
 	void setArrTime(int n);
 	void setServeTime(int n);
-	void process();
+	int process();
 	int getArrTime();
 	int getServeTime();
 	int getSrc();

@@ -58,19 +58,32 @@ void Testbed::buildTopo(vector<tuple<int, int>> connections, int linkType=0) {
 
 void Testbed::readService (string filename) {
 	// Read service chain definition from file
-	// Service chain format: service, numStage
+	// Service chain format: service, numStage, [scaling ratio]
 	ifstream flowFile;
 	char temp[256];
 	int service, numStage;
+	vector<int> scaling;
 	flowFile.open(filename);
 	if (flowFile.is_open()) {
 		while (flowFile.good()) {
 			flowFile.getline(temp, 256, ',');
 			service = std::atoi(temp);
-			flowFile.getline(temp, 256, '\n');
+			flowFile.getline(temp, 256, ',');
 			numStage = std::atoi(temp);
 
+			scaling.clear();
+			for (int i = 1; i < numStage; i++) {
+				flowFile.getline(temp, 256, ',');
+				scaling.push_back(std::atoi(temp));
+			}
+			
+
+			flowFile.getline(temp, 256, '\n');
+			scaling.push_back(std::atoi(temp));
+
 			PacketID::numServiceStage[service] = numStage;
+			//PacketID::serviceScaling.insert(make_pair(service, scaling));
+			PacketID::serviceScaling[service] = scaling;
 		}
 		flowFile.close();
 	} else {

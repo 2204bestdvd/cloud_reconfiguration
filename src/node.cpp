@@ -61,6 +61,7 @@ void Node::tx(Link* link, PacketID* pid, int rate) {
 	}
 }
 void Node::px(PacketID* pid, int rate) {
+	int scaling;
 	Packet *pkPtr, *tempPtr;
 	PacketID* nextPid;
 
@@ -73,23 +74,23 @@ void Node::px(PacketID* pid, int rate) {
 
 				// Process the packet and transfer to the next queue
 				if (!pid->isLastStage()) {
-					pkPtr->process();
+					scaling = pkPtr->process();
 					queues[pid].pop();
 					nextPid = pid->getNextPid();
 					if ((nextPid->isLastStage()) && (nextPid->getDst() == nodeID)) {
 						delete pkPtr;
 					} else {
 						queues[nextPid].push(pkPtr);
-					}
-				}
 
-				// Only implement integer ratio here
-				int expand = pxScaling - 1;
-				while (expand > 0) {
-					// Duplicate packet for flow expansion
-					tempPtr = new Packet(*pkPtr);
-					queues[nextPid].push(pkPtr);
-					expand--;
+						// Only implement integer ratio, i.e. expansion
+						int expand = scaling - 1;
+						while (expand > 0) {
+							// Duplicate packet for flow expansion
+							tempPtr = new Packet(*pkPtr);
+							queues[nextPid].push(pkPtr);
+							expand--;							
+						}
+					}
 				}
 			}
 		}

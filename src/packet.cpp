@@ -1,6 +1,7 @@
 #include "packet.h"
 
 std::unordered_map<int, int> PacketID::numServiceStage;
+std::unordered_map<int, std::vector<int>> PacketID::serviceScaling;
 std::vector<PacketID*> PacketID::packetIDs;
 
 Packet::Packet() {
@@ -32,9 +33,12 @@ void Packet::setServeTime(int n) {
 	serveTime = n;
 }
 
-void Packet::process() {
+int Packet::process() {
 	assert( !(identifier->isLastStage()) );
+	int scaling = identifier->getPxScaling();
 	identifier = identifier->getNextPid();
+
+	return scaling;
 }
 
 int Packet::getArrTime() {
