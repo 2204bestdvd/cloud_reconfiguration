@@ -87,7 +87,7 @@ void Node::px(PacketID* pid, int rate) {
 						while (expand > 0) {
 							// Duplicate packet for flow expansion
 							tempPtr = new Packet(*pkPtr);
-							queues[nextPid].push(pkPtr);
+							queues[nextPid].push(tempPtr);
 							expand--;							
 						}
 					}
