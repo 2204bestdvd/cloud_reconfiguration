@@ -3,7 +3,8 @@
 int Node::numNodes = 0;
 int Link::numLinks = 0;
 
-Testbed::Testbed(int num, int deltar, const char* s) :numNodes(num), deltar(deltar) {
+Testbed::Testbed(int num, int deltar, int costr, const char* s) 
+:numNodes(num), deltar(deltar), costr(costr) {
 	schedulingPolicy = new char[strlen(s)];
 	strcpy(schedulingPolicy, s);
 
@@ -13,7 +14,7 @@ Testbed::Testbed(int num, int deltar, const char* s) :numNodes(num), deltar(delt
 void Testbed::createNodes() {
 	// Create nodes
 	for (int i = 0; i < numNodes; i++) {
-		Node* tempNodePointer = new Node(deltar);
+		Node* tempNodePointer = new Node(deltar, costr);
 		nodes.push_back(tempNodePointer);
 	}
 }
@@ -21,7 +22,7 @@ void Testbed::createNodes() {
 void Testbed::buildLink(int sender, int receiver, double txCost, vector<double> allocCosts, 
 						vector<double> allocCaps, int linkType) {
 	// linkType 0:bidirectional, 1:unidirectional
-	Link* tempLinkPointer = new Link(deltar);
+	Link* tempLinkPointer = new Link(deltar, costr);
 	tempLinkPointer->setSender(nodes[sender]);
 	tempLinkPointer->setReceiver(nodes[receiver]);
 	links.push_back(tempLinkPointer);

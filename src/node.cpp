@@ -2,7 +2,7 @@
 #include "link.h"
 
 
-Node::Node(int deltar) :deltar(deltar) {
+Node::Node(int deltar, int costr) :deltar(deltar), costr(costr) {
 	nodeID = numNodes;
 	numNodes++;
 }
@@ -34,6 +34,9 @@ void Node::timeIncrement() {
 	if (reconfigDelay > 0) {
 		reconfigDelay -= 1;
 	}
+	if (reconfigCost > 0) {
+		reconfigCost = 0;
+	}
 }
 
 void Node::preparePx(int numRes, PacketID* pid) {
@@ -42,6 +45,8 @@ void Node::preparePx(int numRes, PacketID* pid) {
 		reconfigDelay = deltar;
 		numResource = numRes;
 		packetID = pid;
+
+		reconfigCost = costr;
 	}
 }
 

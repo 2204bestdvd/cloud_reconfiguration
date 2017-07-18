@@ -1,6 +1,6 @@
 #include "link.h"
 
-Link::Link(int deltar) :deltar(deltar) {
+Link::Link(int deltar, int costr) :deltar(deltar), costr(costr) {
 	linkID = numLinks;
 	numLinks++;
 	sender = NULL;
@@ -18,7 +18,10 @@ void Link::setReceiver(Node* r) {
 void Link::timeIncrement() {
 	if (reconfigDelay > 0) {
 		reconfigDelay -= 1;
-	}		
+	}
+	if (reconfigCost > 0) {
+		reconfigCost = 0;
+	}
 }
 
 string Link::getString() {
@@ -39,6 +42,8 @@ void Link::prepareTx(int numRes, PacketID* pid) {
 		reconfigDelay = deltar;
 		numResource = numRes;
 		packetID = pid;
+
+		reconfigCost = costr;
 	}
 }
 

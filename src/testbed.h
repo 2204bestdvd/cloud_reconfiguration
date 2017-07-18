@@ -14,7 +14,7 @@ using namespace std;
 
 class Testbed {
 public:
-	Testbed(int num, int deltar = 0, const char* s="DCNC");
+	Testbed(int num, int deltar = 0, int costr = 0, const char* s="DCNC");
 	void createNodes();
 	void buildLink(int, int, double, vector<double>, vector<double>, int linkType=0);
 	//void buildTopo(vector<tuple<int, int>> links, int linkType);
@@ -41,6 +41,7 @@ public:
 private:
 	int numNodes;
 	int deltar;
+	int costr;
 	std::vector<Node*> nodes;
 	std::vector<Link*> links;
 	std::vector<PacketID*> packetIDs;

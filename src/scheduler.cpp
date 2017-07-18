@@ -266,10 +266,11 @@ void Scheduler::initReportCost() {
 	std::ofstream* file = logger->getCFile();
 	*file << "time";
 	for (int n = 0; n < nodes.size(); n++) {
-		*file << ",node" << n << "_px" << ",node" << n << "_resource" ;
+		*file << ",node" << n << "_px" << ",node" << n << "_resource" << ",node" << n << "_reconfig";
 	}
 	for (int l = 0; l < links.size(); l++) {
-		*file << ",link" << links[l]->getString() << "_tx" << ",link" << links[l]->getString() << "_resource";
+		*file << ",link" << links[l]->getString() << "_tx" << ",link" << links[l]->getString() << "_resource"
+		<< ",link" << links[l]->getString() << "_reconfig";
 	}
 	*file << std::endl;
 }
@@ -293,10 +294,12 @@ void Scheduler::reportCost(int time) {
 
 	*file << time;
 	for (int n = 0; n < nodes.size(); n++) {
-		*file << "," << nodePxCosts[n] * nodeRates[n] << "," << nodeAllocCosts[n][nodeResources[n]];
+		*file << "," << nodePxCosts[n] * nodeRates[n] << "," << nodeAllocCosts[n][nodeResources[n]] 
+		<< "," << nodes[n]->getReconfigCost();
 	}
 	for (int l = 0; l < links.size(); l++) {
-		*file << "," << linkTxCosts[l] * linkRates[l] << "," << linkAllocCosts[l][linkResources[l]];
+		*file << "," << linkTxCosts[l] * linkRates[l] << "," << linkAllocCosts[l][linkResources[l]]
+		<< "," << links[l]->getReconfigCost();
 	}
 	*file << std::endl;
 }

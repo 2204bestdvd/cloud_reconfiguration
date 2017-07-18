@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
 	int simTime = 10;
 	int N = 4;
 	int deltar = 0;
+	int costr = 0;
 	char schedulingPolicy[20] = "DCNC";
 	double V = 1;
 	bool logging = true;
@@ -58,6 +59,7 @@ int main(int argc, char* argv[]) {
 				if (!strcmp(s, "t")) simTime = atoi(result);
 				else if (!strcmp(s, "N")) N = atoi(result);
 				else if (!strcmp(s, "deltar")) deltar = atoi(result);
+				else if (!strcmp(s, "costr")) costr = atoi(result);
 				else if (!strcmp(s, "policy")) strcpy(schedulingPolicy, result);
 				else if (!strcmp(s, "V")) V = atof(result);
 				else if (!strcmp(s, "logging")) {
@@ -72,7 +74,7 @@ int main(int argc, char* argv[]) {
 	string inputDir = "input/";
 	// Read number of nodes and instantiate testbed
 	N = readNumNodes(inputDir + string("topo.in"));
-	Testbed testbed(N, deltar, schedulingPolicy);
+	Testbed testbed(N, deltar, costr, schedulingPolicy);
 
 	// Read topology
 	testbed.readTopo(inputDir + string("topo.in"));
@@ -91,7 +93,7 @@ int main(int argc, char* argv[]) {
 	stringstream ss_V;
 	ss_V << fixed << setprecision(1) << V;
 	string simIdentifier = "N_" + to_string(N) + "_t_" + to_string(simTime) + "_deltar_" + to_string(deltar) 
-							+ "_" + string(schedulingPolicy) + "_V_" + ss_V.str();
+							+ "_costr_" + to_string(costr) + "_" + string(schedulingPolicy) + "_V_" + ss_V.str();
 	string logFilename = "output/log/log_" + simIdentifier + ".txt";
 	string queueFilename = "output/sim/queue_" + simIdentifier + ".csv";
 	string scheduleFilename = "output/sim/schedule_" + simIdentifier + ".csv";

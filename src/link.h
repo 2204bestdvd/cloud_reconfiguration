@@ -16,7 +16,7 @@ class Node;
 class Link {
 public:
 	static int numLinks;
-	Link(int deltar = 0);
+	Link(int deltar = 0, int costr = 0);
 	void setSender(Node* s);
 	void setReceiver(Node* r);
 	void setLogger(Logger* l) {logger = l;}
@@ -25,6 +25,7 @@ public:
 	string getString();
 	int getQueueDiff(PacketID* pid);
 	int getReconfig() { return reconfigDelay; }
+	int getReconfigCost() { return reconfigCost; }
 	void prepareTx(int numRes, PacketID* pid);
 	int tx(Packet* pkPtr);
 	Node* getSender();
@@ -43,8 +44,10 @@ private:
 	PacketID* packetID;
 
 	// parameters and reconfiguration variables
-	int deltar = 0;
+	int deltar = 0;  // delay duration of reconfiguration
 	int reconfigDelay = 0;
+	int costr = 0;  // cost of reconfiguration
+	int reconfigCost = 0;
 };
 
 

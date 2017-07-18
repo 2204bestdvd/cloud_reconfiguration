@@ -29,7 +29,7 @@ class Link;
 class Node {
 public:
 	static int numNodes;
-	Node(int deltar = 0);
+	Node(int deltar = 0, int costr = 0);
 	void initQueues();	
 	//void addNeighbor(Node* neighbor);
 	void addOutputLink(Link* linkPtr);
@@ -53,6 +53,7 @@ public:
 	int getQueueLen(PacketID* pid);
 	int getQueueDiff(PacketID* pid);
 	int getReconfig() { return reconfigDelay; }
+	int getReconfigCost() { return reconfigCost; }
 	void printQueues(Logger& logger) {
 		logger << "Node " << nodeID << ": # queues = " << queues.size() << std::endl;
 
@@ -78,8 +79,10 @@ private:
 	PacketID* packetID;	
 
 	// parameters and reconfiguration variable
-	int deltar = 0;
+	int deltar = 0;  // delay duration of reconfiguration
 	int reconfigDelay = 0;
+	int costr = 0;  // cost of reconfiguration
+	int reconfigCost = 0;
 	int pxScaling = 1;
 };
 
