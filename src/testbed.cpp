@@ -312,7 +312,7 @@ void Testbed::run() {
 		resource = std::get<0>(alloc);
 		rate = std::get<1>(alloc);
 		pid = std::get<2>(alloc);
-		if ((rate == 0) || (pid == NULL)) continue;
+		//if ((rate == 0) || (pid == NULL)) continue;
 
 		// prepare tx (check if reconfiguration occurs)
 		links[l]->prepareTx(resource, pid);
@@ -326,7 +326,7 @@ void Testbed::run() {
 		resource = std::get<0>(alloc);
 		rate = std::get<1>(alloc);
 		pid = std::get<2>(alloc);
-		if ((rate == 0) || (pid == NULL)) continue;
+		//if ((rate == 0) || (pid == NULL)) continue;
 
 		// prepare px (check if reconfiguration occurs)
 		nodes[n]->preparePx(resource, pid);

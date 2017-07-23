@@ -41,6 +41,7 @@ void Node::timeIncrement() {
 
 void Node::preparePx(int numRes, PacketID* pid) {
 	if ((numRes != numResource) || (pid != packetID)) {
+	//if ((numRes != numResource)) {
 		// Start reconfiguration
 		reconfigDelay = deltar;
 		numResource = numRes;

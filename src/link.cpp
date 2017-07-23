@@ -38,6 +38,7 @@ int Link::getQueueDiff(PacketID* pid) {
 
 void Link::prepareTx(int numRes, PacketID* pid) {
 	if ((numRes != numResource) || (pid != packetID)) {
+	//if ((numRes != numResource)) {
 		// Start reconfiguration
 		reconfigDelay = deltar;
 		numResource = numRes;
