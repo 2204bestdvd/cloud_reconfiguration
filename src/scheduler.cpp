@@ -168,8 +168,9 @@ void Scheduler::ADCNC () {
 			currentWeight = - V * linkAllocCosts[l][linkResources[l]];
 		}
 
-		// Reconfigure only when the weight difference is larger than the threshold or the rate is zero
-		if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
+		// Reconfigure only when the weight difference is larger than the threshold
+		//if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
+		if ((maxWeight - currentWeight > hysteresis(maxDiff * linkRates[l]))) {
 			linkTxPackets[l] = maxPid;
 			if (maxPid != NULL) {
 				linkResources[l] = resource;
@@ -220,8 +221,9 @@ void Scheduler::ADCNC () {
 			currentWeight = - V * nodeAllocCosts[n][nodeResources[n]];
 		}
 		
-		// Reconfigure only when the weight difference is larger than the threshold or the rate is zero
-		if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
+		// Reconfigure only when the weight difference is larger than the threshold
+		//if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
+		if ((maxWeight - currentWeight > hysteresis(maxDiff * nodeRates[n]))) {
 			nodePxPackets[n] = maxPid;
 			if (maxPid != NULL) {
 				nodeResources[n] = resource;
