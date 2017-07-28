@@ -178,8 +178,16 @@ void Scheduler::ADCNC () {
 			} else {
 				linkResources[l] = 0;
 				linkRates[l] = 0;
+				linkTxPackets[l] = NULL;
 			}
-		} 
+		} else {
+			// Set the rate to zero if queue differential <= 0
+			if (currentDiff <= 0) {
+				linkResources[l] = 0;
+				linkRates[l] = 0;
+				linkTxPackets[l] = NULL;
+			}
+		}
 	}		
 
 	for (int n = 0; n < nodes.size(); n++) {
@@ -231,8 +239,17 @@ void Scheduler::ADCNC () {
 			} else {
 				nodeResources[n] = 0;
 				nodeRates[n] = 0;
+				nodePxPackets[n] = NULL;
 			}
-		} 
+		}  else {
+			// Set the rate to zero if queue differential <= 0
+			if (currentDiff <= 0) {
+				nodeResources[n] = 0;
+				nodeRates[n] = 0;
+				nodePxPackets[n] = NULL;
+			}
+		}
+
 	}
 
 }

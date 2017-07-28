@@ -6,11 +6,15 @@ import numpy as np
 import os
 import commands
 
+import pickle
+
 # Run simulation and plot simulation statistics
-def test(N, t, deltar, policy, V):
+def test(N, t, deltar, costr, policy, V):
     output_dir = 'output/sim/'
-    sim_command = './test t=' + str(t) + ' deltar=' + str(deltar) + ' policy=' + policy + ' V=' + str(V) + ' logging=false'
-    sim_instance = 'N_' + str(N) + '_t_' + str(t) + '_deltar_' + str(deltar) + '_' + policy + '_V_' + str(V)
+    sim_command = './test t=' + str(t) + ' deltar=' + str(deltar) + ' costr=' + str(costr)
+    sim_command += ' policy=' + policy + ' V=' + str(V) + ' logging=false'
+    sim_instance = 'N_' + str(N) + '_t_' + str(t) + '_deltar_' + str(deltar) + '_costr_' + str(costr)
+    sim_instance += '_' + policy + '_V_' + str(V)
 
     commands.getstatusoutput(sim_command)    
     
@@ -57,13 +61,14 @@ def test(N, t, deltar, policy, V):
 N = 6
 t = 300000
 deltar = 10
+costr = 0
 V = 10.0
-policy = 'ADCNC'
+policy = 'DCNC'
 
 
 # In[11]:
 
-deltars = [0, 10, 20]
+deltars = [0, 5, 10]
 deltar_costs = []
 deltar_queues = []
 for deltar in deltars:
@@ -73,7 +78,7 @@ for deltar in deltars:
     for V in Vs:
         t = int(100000 * (3**(np.floor(np.log10(V)))))
         print 'V = ', V, ', deltar = ', deltar
-        schedule, queue, cost = test(N, t, deltar, policy, V)
+        schedule, queue, cost = test(N, t, deltar, costr, policy, V)
         costs.append(cost.sum(axis=1).mean())
         queues.append(queue.sum(axis=1).mean())
         del schedule, queue, cost
@@ -100,9 +105,12 @@ for costs in deltar_costs:
     plt.xlabel('V')
     plt.ylabel('Mean costs')
 
-plt.savefig('delay_cost.png', bbox_inches='tight')
+plt.savefig('delay_cost_'+policy+'.png', bbox_inches='tight')
 
+data = {'deltar_costs': deltar_costs, 'deltar_queues': deltar_queues, 'deltars': deltars, 'Vs': Vs}
 
+with open('delay_cost_'+policy+'.out', 'w') as outFile:
+    pickle.dump(data, outFile)
 
 # ### Processing and transmission rate for each commodity
 
