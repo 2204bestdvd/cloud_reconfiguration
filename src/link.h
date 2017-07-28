@@ -26,6 +26,7 @@ public:
 	int getQueueDiff(PacketID* pid);
 	int getReconfig() { return reconfigDelay; }
 	int getReconfigCost() { return reconfigCost; }
+	int getCostr() { return costr; }
 	void prepareTx(int numRes, PacketID* pid);
 	int tx(Packet* pkPtr);
 	Node* getSender();

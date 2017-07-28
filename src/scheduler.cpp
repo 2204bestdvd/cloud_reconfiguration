@@ -41,6 +41,8 @@ void Scheduler::schedule() {
 		DCNC();
 	} else if (!strcmp(schedulingPolicy, "ADCNC")) {
 		ADCNC();
+	} else if (!strcmp(schedulingPolicy, "EADCNC")) {
+		EADCNC();
 	}
 }
 
@@ -253,6 +255,143 @@ void Scheduler::ADCNC () {
 	}
 
 }
+
+void Scheduler::EADCNC () {
+	// Note: we have assumed that the cost is zero when allocating no resources
+	double maxDiff, maxWeight, diff, weight;
+	double resource, rate, rateMaxWeight;
+	double currentDiff, currentWeight;
+	int costr;
+	PacketID* maxPid = NULL;
+	for (int l = 0; l < links.size(); l++) {
+		// Find the packetID with the highest queue length differential
+		maxPid = NULL;
+		maxDiff = 0;
+		for (int p = 0; p < PacketID::packetIDs.size(); p++) {
+			diff = links[l]->getQueueDiff(PacketID::packetIDs[p]);
+			if (diff > maxDiff) {
+				maxDiff = diff;
+				maxPid = PacketID::packetIDs[p];
+			}
+		}
+
+		// Determine the optimal resource allocation (subject to allocation cost) and thus MaxWeight
+		resource = 0;
+		rate = 0;
+		maxWeight = 0;
+		if (maxDiff > V * linkTxCosts[l]) {
+			for (int r = 0; r < linkAllocCaps[l].size(); r++) {
+				weight = (maxDiff - V * linkTxCosts[l]) * linkAllocCaps[l][r] - V * linkAllocCosts[l][r];
+				if (weight > maxWeight) {
+					maxWeight = weight;
+					rate = linkAllocCaps[l][r];
+					resource = r;
+				}
+			}
+		}
+
+		// Determine the current weight and determine whether to reconfigure
+		currentDiff = 0;
+		currentWeight = 0;
+		if (linkTxPackets[l] != NULL) {
+			currentDiff = links[l]->getQueueDiff(linkTxPackets[l]);
+		}
+		if (currentDiff > V * linkTxCosts[l]) {
+			currentWeight = (currentDiff - V * linkTxCosts[l]) * linkRates[l] - V * linkAllocCosts[l][linkResources[l]];
+		} else {
+			currentWeight = - V * linkAllocCosts[l][linkResources[l]];
+		}
+
+		// Reconfigure only when the weight difference is larger than the threshold
+		// EADCNC: Add reconfiguration cost as bias term
+		//if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
+		costr = links[l]->getCostr();
+		if ((maxWeight - currentWeight > hysteresis(maxDiff * linkRates[l]) + costr)) {
+			linkTxPackets[l] = maxPid;
+			if (maxPid != NULL) {
+				linkResources[l] = resource;
+				linkRates[l] = rate;
+			} else {
+				linkResources[l] = 0;
+				linkRates[l] = 0;
+				linkTxPackets[l] = NULL;
+			}
+		} else {
+			// Set the rate to zero if queue differential <= 0
+			if (currentDiff <= 0) {
+				linkResources[l] = 0;
+				linkRates[l] = 0;
+				linkTxPackets[l] = NULL;
+			}
+		}
+	}		
+
+	for (int n = 0; n < nodes.size(); n++) {
+		// Find the packetID with the highest queue length differential
+		maxPid = NULL;
+		maxDiff = 0;
+		for (int p = 0; p < PacketID::packetIDs.size(); p++) {
+			diff = nodes[n]->getQueueDiff(PacketID::packetIDs[p]);
+			if (diff > maxDiff) {
+				maxDiff = diff;
+				maxPid = PacketID::packetIDs[p];
+			}
+		}
+
+		// Determine the optimal resource allocation (subject to allocation cost) and thus MaxWeight
+		resource = 0;
+		rate = 0;
+		maxWeight = 0;
+		if (maxDiff > V * nodePxCosts[n]) {
+			for (int r = 0; r < nodeAllocCaps[n].size(); r++) {
+				weight = (maxDiff - V * nodePxCosts[n]) * nodeAllocCaps[n][r] - V * nodeAllocCosts[n][r];
+				if (weight > maxWeight) {
+					maxWeight = weight;
+					rate = nodeAllocCaps[n][r];
+					resource = r;
+				}
+			}
+		}
+
+		// Determine the current weight and determine whether to reconfigure
+		currentDiff = 0;
+		currentWeight = 0;
+		if (nodePxPackets[n] != NULL) {
+			currentDiff = nodes[n]->getQueueDiff(nodePxPackets[n]);
+		}
+		if (currentDiff > V * nodePxCosts[n]) {
+			currentWeight = (currentDiff - V * nodePxCosts[n]) * nodeRates[n] - V * nodeAllocCosts[n][nodeResources[n]];
+		} else {
+			currentWeight = - V * nodeAllocCosts[n][nodeResources[n]];
+		}
+		
+		// Reconfigure only when the weight difference is larger than the threshold
+		// EADCNC: Add reconfiguration cost as bias term
+		//if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
+		costr = nodes[n]->getCostr();
+		if ((maxWeight - currentWeight > hysteresis(maxDiff * nodeRates[n]) + costr )) {
+			nodePxPackets[n] = maxPid;
+			if (maxPid != NULL) {
+				nodeResources[n] = resource;
+				nodeRates[n] = rate;
+			} else {
+				nodeResources[n] = 0;
+				nodeRates[n] = 0;
+				nodePxPackets[n] = NULL;
+			}
+		}  else {
+			// Set the rate to zero if queue differential <= 0
+			if (currentDiff <= 0) {
+				nodeResources[n] = 0;
+				nodeRates[n] = 0;
+				nodePxPackets[n] = NULL;
+			}
+		}
+
+	}
+
+}
+
 
 double Scheduler::hysteresis (double x, double delta, double gamma) {
 	// g(x) = (1 - gamma) * x^{1-delta}

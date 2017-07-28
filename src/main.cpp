@@ -45,6 +45,8 @@ int main(int argc, char* argv[]) {
 	char schedulingPolicy[20] = "DCNC";
 	double V = 1;
 	bool logging = true;
+	char flowFile[20] = "flow.in";
+	char topoFile[20] = "topo.in";
 	if (argc >= 2) {
 		char* s;
 		char* equalsSign;
@@ -63,6 +65,8 @@ int main(int argc, char* argv[]) {
 				else if (!strcmp(s, "costr")) costr = atoi(result);
 				else if (!strcmp(s, "policy")) strcpy(schedulingPolicy, result);
 				else if (!strcmp(s, "V")) V = atof(result);
+				else if (!strcmp(s, "flowFile")) strcpy(flowFile, result);
+				else if (!strcmp(s, "topoFile")) strcpy(topoFile, result);
 				else if (!strcmp(s, "logging")) {
 					if (!strcmp(result, "true")) logging = true;
 					else if (!strcmp(result, "false")) logging = false;
@@ -74,7 +78,7 @@ int main(int argc, char* argv[]) {
 
 	string inputDir = "input/";
 	// Read number of nodes and instantiate testbed
-	N = readNumNodes(inputDir + string("topo.in"));
+	N = readNumNodes(inputDir + string(topoFile));
 	Testbed testbed(N, deltar, costr, schedulingPolicy);
 
 	// Read topology
@@ -85,7 +89,7 @@ int main(int argc, char* argv[]) {
 	// Read service chain definition
 	testbed.readService(inputDir + string("service.in"));
 	// Read flow allocation and assign arrival generators for each flow
-	testbed.readFlow(inputDir + string("flow.in"));
+	testbed.readFlow(inputDir + string(flowFile));
 
 	// Initialize node queues and scheduler
 	testbed.init(V);

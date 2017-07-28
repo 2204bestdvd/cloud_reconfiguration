@@ -54,6 +54,7 @@ public:
 	int getQueueDiff(PacketID* pid);
 	int getReconfig() { return reconfigDelay; }
 	int getReconfigCost() { return reconfigCost; }
+	int getCostr() { return costr; }
 	void printQueues(Logger& logger) {
 		logger << "Node " << nodeID << ": # queues = " << queues.size() << std::endl;
 

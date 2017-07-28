@@ -22,6 +22,7 @@ public:
 
 	void DCNC();
 	void ADCNC();
+	void EADCNC();
 	double hysteresis(double x, double delta = 0.1, double gamma = 0.1);
 	std::tuple<int, int, PacketID*> getScheduleTx(int l);
 	std::tuple<int, int, PacketID*> getSchedulePx(int n);
