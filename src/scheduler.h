@@ -5,6 +5,7 @@
 #include <queue>
 #include <tuple>
 #include <cmath>
+#include <algorithm>
 #include "node.h"
 #include "link.h"
 #include "packet.h"
@@ -49,11 +50,15 @@ private:
 	std::vector<std::vector<double>> linkAllocCaps;  // capacity from allocating k tx units (for each link)
 
 	// Scheduling decisions
+	//std::vector<int> nodeResources;
+	//std::vector<int> nodeRates;
 	std::vector<int> nodeResources;
-	std::vector<int> nodeRates;
+	std::vector<double> nodeRates;
 	std::vector<PacketID*> nodePxPackets;
 	std::vector<int> linkResources;	
-	std::vector<int> linkRates;	
+	std::vector<double> linkRates;	
+	//std::vector<int> linkResources;	
+	//std::vector<int> linkRates;	
 	std::vector<PacketID*> linkTxPackets;
 };
 

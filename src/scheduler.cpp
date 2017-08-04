@@ -173,6 +173,7 @@ void Scheduler::ADCNC () {
 		// Reconfigure only when the weight difference is larger than the threshold
 		//if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
 		if ((maxWeight - currentWeight > hysteresis(maxDiff * linkRates[l]))) {
+		//if ((maxWeight - currentWeight > hysteresis(maxDiff * std::max(linkRates[l], rate) ))) {
 			linkTxPackets[l] = maxPid;
 			if (maxPid != NULL) {
 				linkResources[l] = resource;
@@ -234,6 +235,7 @@ void Scheduler::ADCNC () {
 		// Reconfigure only when the weight difference is larger than the threshold
 		//if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
 		if ((maxWeight - currentWeight > hysteresis(maxDiff * nodeRates[n]))) {
+		//if ((maxWeight - currentWeight > hysteresis(maxDiff * std::max(nodeRates[n], rate) ))) {
 			nodePxPackets[n] = maxPid;
 			if (maxPid != NULL) {
 				nodeResources[n] = resource;
@@ -306,7 +308,7 @@ void Scheduler::EADCNC () {
 		// EADCNC: Add reconfiguration cost as bias term
 		//if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
 		costr = links[l]->getCostr();
-		if ((maxWeight - currentWeight > hysteresis(maxDiff * linkRates[l]) + costr)) {
+		if ((maxWeight - currentWeight > hysteresis(maxDiff * linkRates[l] + costr))) {
 			linkTxPackets[l] = maxPid;
 			if (maxPid != NULL) {
 				linkResources[l] = resource;
@@ -369,7 +371,7 @@ void Scheduler::EADCNC () {
 		// EADCNC: Add reconfiguration cost as bias term
 		//if ((maxWeight - currentWeight > hysteresis(maxWeight)) || (maxWeight == 0)) {
 		costr = nodes[n]->getCostr();
-		if ((maxWeight - currentWeight > hysteresis(maxDiff * nodeRates[n]) + costr )) {
+		if ((maxWeight - currentWeight > hysteresis(maxDiff * nodeRates[n] + costr) )) {
 			nodePxPackets[n] = maxPid;
 			if (maxPid != NULL) {
 				nodeResources[n] = resource;
