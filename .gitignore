@@ -1,3 +1,7 @@
-output
-obj
-input
+output/
+obj/
+input/
+
+*.ipynb
+*.png
+*.out
