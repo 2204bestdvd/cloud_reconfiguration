@@ -1,6 +1,7 @@
 #include "link.h"
 
-Link::Link(int deltar, int costr) :deltar(deltar), costr(costr) {
+Link::Link(int deltarResource, int deltarCommodity, int costr) 
+:deltarResource(deltarResource), deltarCommodity(deltarCommodity), costr(costr) {
 	linkID = numLinks;
 	numLinks++;
 	sender = NULL;
@@ -13,6 +14,11 @@ void Link::setSender(Node* s) {
 }
 void Link::setReceiver(Node* r) {
 	receiver = r;
+}
+void Link::setParameter(double _txCost, vector<double> _allocCosts, vector<double> _allocCaps) {
+	txCost = _txCost;
+	allocCosts = _allocCosts;
+	allocCaps = _allocCaps;
 }
 
 void Link::timeIncrement() {
@@ -38,9 +44,13 @@ int Link::getQueueDiff(PacketID* pid) {
 
 void Link::prepareTx(int numRes, PacketID* pid) {
 	if ((numRes != numResource) || (pid != packetID)) {
-	//if ((numRes != numResource)) {
 		// Start reconfiguration
-		reconfigDelay = deltar;
+		//reconfigDelay = deltar;
+		if (numRes != numResource) {
+			reconfigDelay = std::max(reconfigDelay, deltarResource);
+		} else {
+			reconfigDelay = std::max(reconfigDelay, deltarCommodity);
+		}
 		numResource = numRes;
 		packetID = pid;
 

@@ -2,7 +2,8 @@
 #include "link.h"
 
 
-Node::Node(int deltar, int costr) :deltar(deltar), costr(costr) {
+Node::Node(int deltarResource, int deltarCommodity, int costr) 
+:deltarResource(deltarResource), deltarCommodity(deltarCommodity), costr(costr) {
 	nodeID = numNodes;
 	numNodes++;
 }
@@ -30,6 +31,12 @@ void Node::addFlow(PacketID* pid, double rate) {
 	arrivalGenerators.push_back(std::make_tuple(pid, arr));
 }
 
+void Node::setParameter(double _pxCost, vector<double> _allocCosts, vector<double> _allocCaps) {
+	pxCost = _pxCost;
+	allocCosts = _allocCosts;
+	allocCaps = _allocCaps;
+}
+
 void Node::timeIncrement() {
 	if (reconfigDelay > 0) {
 		reconfigDelay -= 1;
@@ -41,9 +48,14 @@ void Node::timeIncrement() {
 
 void Node::preparePx(int numRes, PacketID* pid) {
 	if ((numRes != numResource) || (pid != packetID)) {
-	//if ((numRes != numResource)) {
 		// Start reconfiguration
-		reconfigDelay = deltar;
+		//reconfigDelay = deltar;
+		if (numRes != numResource) {
+			reconfigDelay = std::max(reconfigDelay, deltarResource);
+		} else {
+			reconfigDelay = std::max(reconfigDelay, deltarCommodity);
+		}
+
 		numResource = numRes;
 		packetID = pid;
 

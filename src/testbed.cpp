@@ -3,26 +3,29 @@
 int Node::numNodes = 0;
 int Link::numLinks = 0;
 
-Testbed::Testbed(int num, int deltar, int costr, const char* s) 
-:numNodes(num), deltar(deltar), costr(costr) {
+Testbed::Testbed(string topoFile, int deltarResource, int deltarCommodity, int costr, const char* s) 
+:deltarResource(deltarResource), deltarCommodity(deltarCommodity), costr(costr) {
+	readTopo(topoFile);
 	schedulingPolicy = new char[strlen(s)];
 	strcpy(schedulingPolicy, s);
-
-	createNodes();
 }
 
-void Testbed::createNodes() {
-	// Create nodes
-	for (int i = 0; i < numNodes; i++) {
-		Node* tempNodePointer = new Node(deltar, costr);
-		nodes.push_back(tempNodePointer);
-	}
+void Testbed::buildNode(int nodeID, double pxCost, vector<double> allocCosts, 
+						vector<double> allocCaps) {
+	Node* tempNodePointer = new Node(deltarResource, deltarCommodity, costr);
+	nodes.push_back(tempNodePointer);
+
+	tempNodePointer->setParameter(pxCost, allocCosts, allocCaps);
+	nodePxCosts.push_back(pxCost);
+	nodeAllocCosts.push_back(allocCosts);
+	nodeAllocCaps.push_back(allocCaps);
 }
+
 
 void Testbed::buildLink(int sender, int receiver, double txCost, vector<double> allocCosts, 
-						vector<double> allocCaps, int linkType) {
+						vector<double> allocCaps, int linkType=0) {
 	// linkType 0:bidirectional, 1:unidirectional
-	Link* tempLinkPointer = new Link(deltar, costr);
+	Link* tempLinkPointer = new Link(deltarResource, deltarCommodity, costr);
 	tempLinkPointer->setSender(nodes[sender]);
 	tempLinkPointer->setReceiver(nodes[receiver]);
 	links.push_back(tempLinkPointer);
@@ -56,6 +59,71 @@ void Testbed::buildTopo(vector<tuple<int, int>> connections, int linkType=0) {
 	}
 }
 */
+void Testbed::readTopo (string filename) {
+	// Read topology and parameters from file
+	// Node format: nodeID, px cost, alloc costs, alloc caps
+	// Link format: sender, receiver, tx cost, alloc costs, alloc caps
+	vector<tuple<int, int>> links;
+	ifstream topoFile;
+	string temp;
+	int nodeID, sender, receiver;
+	double pxCost, txCost;
+	vector<double> allocCosts, allocCaps;
+
+	topoFile.open(filename);
+	if (topoFile.is_open()) {
+		// Read number of nodes
+		getline(topoFile, temp,'\n');
+		numNodes = std::stoi(temp);
+
+		// Read node parameters
+		for (int n = 0; n < numNodes; n++) {
+			getline(topoFile, temp,',');
+			nodeID = std::stoi(temp);
+			assert(nodeID == n);
+
+			// get px cost
+			getline(topoFile, temp,',');
+			pxCost = std::stod(temp);
+
+			// parse allocation costs
+			getline(topoFile, temp,',');
+			allocCosts = parseAllocation(temp);
+
+			// parse allocation capacity
+			getline(topoFile, temp,'\n');
+			allocCaps = parseAllocation(temp);
+
+			buildNode(nodeID, pxCost, allocCosts, allocCaps);
+		}
+
+		// Read connections
+		while (topoFile.good()) {
+			getline(topoFile, temp,',');
+			sender = std::stoi(temp);
+			getline(topoFile, temp,',');
+			receiver = std::stoi(temp);
+
+			// get tx cost
+			getline(topoFile, temp,',');
+			txCost = std::stod(temp);
+
+			// parse allocation costs
+			getline(topoFile, temp,',');
+			allocCosts = parseAllocation(temp);
+
+			// parse allocation capacity
+			getline(topoFile, temp,'\n');
+			allocCaps = parseAllocation(temp);
+
+			buildLink(sender, receiver, txCost, allocCosts, allocCaps);
+		}
+		topoFile.close();
+	} else {
+		cout << "Error opening file";
+	}	
+}
+
 
 void Testbed::readService (string filename) {
 	// Read service chain definition from file
@@ -188,71 +256,6 @@ vector<double> Testbed::parseAllocation(string s) {
 	allocation.push_back(std::stod(temp));
 
 	return allocation;
-}
-void Testbed::readTopo (string filename) {
-	// Read topology and parameters from file
-	// Node format: nodeID, px cost, alloc costs, alloc caps
-	// Link format: sender, receiver, tx cost, alloc costs, alloc caps
-	vector<tuple<int, int>> links;
-	ifstream topoFile;
-	string temp;
-	int N, node, sender, receiver;
-	double pxCost, txCost;
-	vector<double> allocCosts, allocCaps;
-
-	topoFile.open(filename);
-	if (topoFile.is_open()) {
-		// Read number of nodes
-		getline(topoFile, temp,'\n');
-		N = std::stoi(temp);
-
-		// Read node parameters
-		for (int n = 0; n < N; n++) {
-			getline(topoFile, temp,',');
-			node = std::stoi(temp);
-			assert(node == n);
-
-			// get px cost
-			getline(topoFile, temp,',');
-			pxCost = std::stod(temp);
-			nodePxCosts.push_back(pxCost);
-
-			// parse allocation costs
-			getline(topoFile, temp,',');
-			allocCosts = parseAllocation(temp);
-			nodeAllocCosts.push_back(allocCosts);
-
-			// parse allocation capacity
-			getline(topoFile, temp,'\n');
-			allocCaps = parseAllocation(temp);
-			nodeAllocCaps.push_back(allocCaps);
-		}
-
-		// Read connections
-		while (topoFile.good()) {
-			getline(topoFile, temp,',');
-			sender = std::stoi(temp);
-			getline(topoFile, temp,',');
-			receiver = std::stoi(temp);
-
-			// get tx cost
-			getline(topoFile, temp,',');
-			txCost = std::stod(temp);
-
-			// parse allocation costs
-			getline(topoFile, temp,',');
-			allocCosts = parseAllocation(temp);
-
-			// parse allocation capacity
-			getline(topoFile, temp,'\n');
-			allocCaps = parseAllocation(temp);
-
-			buildLink(sender, receiver, txCost, allocCosts, allocCaps);
-		}
-		topoFile.close();
-	} else {
-		cout << "Error opening file";
-	}	
 }
 
 /*

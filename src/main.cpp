@@ -16,31 +16,15 @@
 
 using namespace std;
 
-int readNumNodes(string filename) {
-	ifstream topoFile;
-	string temp;
-	int N;
-
-	topoFile.open(filename);
-	if (topoFile.is_open()) {
-		// Read number of nodes
-		getline(topoFile, temp,'\n');
-		N = std::stoi(temp);
-		topoFile.close();
-	} else {
-		cout << "Error opening file";
-	}	
-
-	return N;
-}
-
 int main(int argc, char* argv[]) {
 	srand(time(0));
 
 	// arguments: t=simTime, N=N, deltar=deltar
 	int simTime = 10;
-	int N = 4;
+	//int N = 4;
 	int deltar = 0;
+	int deltarResource = 0;
+	int deltarCommodity = 0;
 	int costr = 0;
 	char schedulingPolicy[20] = "DCNC";
 	double V = 1;
@@ -60,8 +44,10 @@ int main(int argc, char* argv[]) {
 				result = static_cast<char*>(malloc(strlen(equalsSign) + 1));
 				strcpy(result, equalsSign);
 				if (!strcmp(s, "t")) simTime = atoi(result);
-				else if (!strcmp(s, "N")) N = atoi(result);
+				//else if (!strcmp(s, "N")) N = atoi(result);
 				else if (!strcmp(s, "deltar")) deltar = atoi(result);
+				else if (!strcmp(s, "deltarResource")) deltarResource = atoi(result);
+				else if (!strcmp(s, "deltarCommodity")) deltarCommodity = atoi(result);
 				else if (!strcmp(s, "costr")) costr = atoi(result);
 				else if (!strcmp(s, "policy")) strcpy(schedulingPolicy, result);
 				else if (!strcmp(s, "V")) V = atof(result);
@@ -77,14 +63,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	string inputDir = "input/";
-	// Read number of nodes and instantiate testbed
-	N = readNumNodes(inputDir + string(topoFile));
-	Testbed testbed(N, deltar, costr, schedulingPolicy);
-
-	// Read topology
-	testbed.readTopo(inputDir + string("topo.in"));
-	//vector<tuple<int, int>> links = readTopo(inputDir + string("topo.in"), N);
-	//testbed.buildTopo(links, 0);
+	// Read topology and instantiate testbed
+	Testbed testbed(inputDir + string(topoFile), deltarResource, deltarCommodity, costr, schedulingPolicy);
 
 	// Read service chain definition
 	testbed.readService(inputDir + string("service.in"));
@@ -97,7 +77,9 @@ int main(int argc, char* argv[]) {
 	// Open result file and init
 	stringstream ss_V;
 	ss_V << fixed << setprecision(1) << V;
-	string simIdentifier = "N_" + to_string(N) + "_t_" + to_string(simTime) + "_deltar_" + to_string(deltar) 
+	string simIdentifier = "N_" + to_string(testbed.getNumNodes()) + "_t_" + to_string(simTime) 
+							+ "_deltarResource_" + to_string(deltarResource) 
+							+ "_deltarCommodity_" + to_string(deltarCommodity) 
 							+ "_costr_" + to_string(costr) + "_" + string(schedulingPolicy) + "_V_" + ss_V.str();
 	string logFilename = "output/log/log_" + simIdentifier + ".txt";
 	string queueFilename = "output/sim/queue_" + simIdentifier + ".csv";

@@ -12,12 +12,14 @@
 
 using namespace std;
 
+
 class Testbed {
 public:
-	Testbed(int num, int deltar = 0, int costr = 0, const char* s="DCNC");
-	void createNodes();
-	void buildLink(int, int, double, vector<double>, vector<double>, int linkType=0);
+	Testbed(string topoFile, int deltarResource=0, int deltarCommodity=0, int costr=0, const char* s="DCNC");
+	void buildNode(int, double, vector<double>, vector<double>);
+	void buildLink(int, int, double, vector<double>, vector<double>, int linkType);
 	//void buildTopo(vector<tuple<int, int>> links, int linkType);
+	void readTopo(string filename);
 	void readService (string filename);
 	void readFlow (string filename);
 	void addFlow(int src, int dst, int service, double rate);
@@ -25,7 +27,6 @@ public:
 	void setParam(double V);
 	void setLogger(Logger* l);
 	vector<double> parseAllocation(string s);
-	void readTopo(string filename);
 	//void assignCost();
 	//void assignCap();
 	void timeIncrement();
@@ -36,11 +37,14 @@ public:
 	void report(int t);
 
 	void printCost();
+	int getNumNodes() {return numNodes;}
 
 
 private:
 	int numNodes;
 	int deltar;
+	int deltarResource;
+	int deltarCommodity;
 	int costr;
 	std::vector<Node*> nodes;
 	std::vector<Link*> links;

@@ -21,8 +21,12 @@ public:
 	void setLogger(Logger* l) {logger = l;}
 	void schedule();
 
+	std::tuple<int, PacketID*, double, double, double> getMaxWeight(int, int);
+	std::tuple<double, double, double> getCurrentWeight(int, int);
 	void DCNC();
 	void ADCNC();
+	void ADCNCR();
+	void ADCNC2Stage();
 	void EADCNC();
 	double hysteresis(double x, double delta = 0.1, double gamma = 0.1);
 	std::tuple<int, int, PacketID*> getScheduleTx(int l);
